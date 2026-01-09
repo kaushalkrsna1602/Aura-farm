@@ -56,6 +56,7 @@ export function ManageGroupDialog({
         } else {
             toast.success("Tribe name updated!");
             setIsEditing(false);
+            window.location.reload(); // Force full reload to verify updates if router.refresh is flaky
         }
         setLoading(false);
     };
@@ -70,6 +71,7 @@ export function ManageGroupDialog({
             setLoading(false); // Only stop loading if error, otherwise we redirect
         } else {
             toast.success("Left tribe.");
+            window.location.href = "/dashboard"; // Hard redirect to dashboard
         }
     };
 

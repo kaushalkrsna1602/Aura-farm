@@ -6,6 +6,7 @@ import Link from "next/link";
 import { JoinGroupButton } from "@/components/join-group-button";
 import { ManageGroupDialog } from "@/components/manage-group-dialog";
 import { GiveAuraDialog } from "@/components/give-aura-dialog";
+import { Zap, Settings, ArrowLeft } from "lucide-react";
 
 export default async function GroupPage(props: { params: Promise<{ id: string }> }) {
     const params = await props.params;
@@ -83,11 +84,10 @@ export default async function GroupPage(props: { params: Promise<{ id: string }>
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
                         <div className="flex items-center gap-2 mb-2">
-                            <Link href="/dashboard" className="text-stone-400 hover:text-stone-600 transition-colors">
-                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                            <Link href="/dashboard" className="flex items-center gap-1 text-stone-400 hover:text-aura-gold transition-colors font-medium">
+                                <ArrowLeft className="w-5 h-5" />
+                                <span>Back to Dashboard</span>
                             </Link>
-                            <span className="text-stone-300 font-bold">/</span>
-                            <span className="text-stone-500 font-medium">Tribe</span>
                         </div>
                         <h1 className="text-4xl font-black text-stone-800 tracking-tight">{group.name}</h1>
                         <p className="text-stone-500 font-medium flex items-center gap-2 mt-1">
@@ -154,7 +154,7 @@ export default async function GroupPage(props: { params: Promise<{ id: string }>
 
                                 <GiveAuraDialog
                                     trigger={
-                                        <ClayButton variant="primary" className="h-20 flex-col gap-1 text-sm shadow-sm bg-white" leftIcon={<svg className="w-6 h-6 text-aura-gold-dark" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>}>
+                                        <ClayButton variant="primary" className="h-20 flex-col gap-1 text-sm shadow-sm bg-white" leftIcon={<Zap className="w-6 h-6 text-aura-gold-dark" />}>
                                             Give Aura
                                         </ClayButton>
                                     }
@@ -165,7 +165,7 @@ export default async function GroupPage(props: { params: Promise<{ id: string }>
                                 <ManageGroupDialog
                                     group={group}
                                     trigger={
-                                        <ClayButton variant="secondary" className="h-20 flex-col gap-1 text-sm shadow-sm bg-white" leftIcon={<svg className="w-6 h-6 text-stone-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>}>
+                                        <ClayButton variant="secondary" className="h-20 flex-col gap-1 text-sm shadow-sm bg-white" leftIcon={<Settings className="w-6 h-6 text-stone-500" />}>
                                             Manage
                                         </ClayButton>
                                     }
