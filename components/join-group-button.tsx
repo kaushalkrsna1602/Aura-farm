@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { joinGroupAction } from "@/actions/groups";
 import { ClayButton } from "@/components/ui/clay-button";
+import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
 export function JoinGroupButton({ groupId }: { groupId: string }) {
@@ -14,11 +15,14 @@ export function JoinGroupButton({ groupId }: { groupId: string }) {
         const result = await joinGroupAction(groupId);
 
         if (result?.message) {
-            alert(result.message); // Simple alert for now
+            toast.error(result.message);
+            if (result.message.includes("logged in")) {
+                router.push("/login");
+            }
             setIsLoading(false);
         } else {
+            toast.success("Joined tribe!");
             router.refresh();
-            // Optionally we could redirect or just let the refresh handle the UI update
         }
     };
 
