@@ -1,26 +1,355 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
+
+/* ===============================================
+   AURAFLOW: NEO-CLAYMORPHISM DESIGN SYSTEM
+   =============================================== */
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  /* Fonts */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Core Color Mapping */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Chart Colors */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* Sidebar Colors */
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* AuraFlow Brand Colors */
+  --color-aura-gold: #fbbf24;
+  --color-aura-gold-light: #fcd34d;
+  --color-aura-gold-dark: #f59e0b;
+  --color-aura-blue: #3b82f6;
+  --color-aura-red: #ef4444;
+  --color-aura-green: #22c55e;
+
+  /* Clay Surface Colors */
+  --color-clay-surface: #f5f5f4;
+  --color-clay-surface-light: #fafaf9;
+  --color-clay-surface-dark: #e7e5e4;
+  --color-clay-highlight: #ffffff;
+  --color-clay-shadow: #d6d3d1;
+
+  /* Border Radius */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --radius-clay: 1.5rem;
+
+  /* Clay Shadow Tokens */
+  --shadow-clay: 5px 5px 10px var(--color-clay-shadow), -5px -5px 10px var(--color-clay-highlight);
+  --shadow-clay-sm: 3px 3px 6px var(--color-clay-shadow), -3px -3px 6px var(--color-clay-highlight);
+  --shadow-clay-lg: 8px 8px 16px var(--color-clay-shadow), -8px -8px 16px var(--color-clay-highlight);
+  --shadow-clay-inset: inset 2px 2px 5px var(--color-clay-shadow), inset -2px -2px 5px var(--color-clay-highlight);
+  --shadow-clay-pressed: inset 2px 2px 5px var(--color-clay-shadow), inset -2px -2px 5px var(--color-clay-highlight);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ===============================================
+   ROOT VARIABLES: LIGHT MODE (NEO-CLAYMORPHISM)
+   =============================================== */
+
+:root {
+  --radius: 1.5rem;
+  
+  /* Background: Stone 100 */
+  --background: #f5f5f4;
+  --foreground: #1c1917;
+
+  /* Card: Stone 50 */
+  --card: #fafaf9;
+  --card-foreground: #1c1917;
+
+  /* Popover */
+  --popover: #fafaf9;
+  --popover-foreground: #1c1917;
+
+  /* Primary: Amber 400 */
+  --primary: #fbbf24;
+  --primary-foreground: #1c1917;
+
+  /* Secondary: Stone 200 */
+  --secondary: #e7e5e4;
+  --secondary-foreground: #1c1917;
+
+  /* Muted */
+  --muted: #e7e5e4;
+  --muted-foreground: #78716c;
+
+  /* Accent */
+  --accent: #fef3c7;
+  --accent-foreground: #1c1917;
+
+  /* Destructive */
+  --destructive: #ef4444;
+
+  /* Border & Input */
+  --border: #d6d3d1;
+  --input: #d6d3d1;
+  --ring: #fbbf24;
+
+  /* Chart Colors */
+  --chart-1: #fbbf24;
+  --chart-2: #3b82f6;
+  --chart-3: #22c55e;
+  --chart-4: #f97316;
+  --chart-5: #8b5cf6;
+
+  /* Sidebar */
+  --sidebar: #fafaf9;
+  --sidebar-foreground: #1c1917;
+  --sidebar-primary: #fbbf24;
+  --sidebar-primary-foreground: #1c1917;
+  --sidebar-accent: #fef3c7;
+  --sidebar-accent-foreground: #1c1917;
+  --sidebar-border: #d6d3d1;
+  --sidebar-ring: #fbbf24;
+}
+
+/* ===============================================
+   DARK MODE VARIABLES
+   =============================================== */
+
+.dark {
+  --radius: 1.5rem;
+  
+  /* Background: Stone 950 */
+  --background: #0c0a09;
+  --foreground: #fafaf9;
+
+  /* Card: Stone 900 */
+  --card: #1c1917;
+  --card-foreground: #fafaf9;
+
+  /* Popover */
+  --popover: #1c1917;
+  --popover-foreground: #fafaf9;
+
+  /* Primary: Amber 400 */
+  --primary: #fbbf24;
+  --primary-foreground: #0c0a09;
+
+  /* Secondary: Stone 800 */
+  --secondary: #292524;
+  --secondary-foreground: #fafaf9;
+
+  /* Muted */
+  --muted: #292524;
+  --muted-foreground: #a8a29e;
+
+  /* Accent */
+  --accent: #451a03;
+  --accent-foreground: #fbbf24;
+
+  /* Destructive */
+  --destructive: #dc2626;
+
+  /* Border & Input */
+  --border: #292524;
+  --input: #292524;
+  --ring: #fbbf24;
+
+  /* Chart Colors */
+  --chart-1: #fbbf24;
+  --chart-2: #60a5fa;
+  --chart-3: #4ade80;
+  --chart-4: #fb923c;
+  --chart-5: #a78bfa;
+
+  /* Sidebar */
+  --sidebar: #1c1917;
+  --sidebar-foreground: #fafaf9;
+  --sidebar-primary: #fbbf24;
+  --sidebar-primary-foreground: #0c0a09;
+  --sidebar-accent: #451a03;
+  --sidebar-accent-foreground: #fbbf24;
+  --sidebar-border: #292524;
+  --sidebar-ring: #fbbf24;
+
+  /* Dark Clay Colors */
+  --color-clay-surface: #1c1917;
+  --color-clay-surface-light: #292524;
+  --color-clay-surface-dark: #0c0a09;
+  --color-clay-highlight: #292524;
+  --color-clay-shadow: #0c0a09;
+}
+
+/* ===============================================
+   BASE LAYER
+   =============================================== */
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Selection color */
+  ::selection {
+    @apply bg-aura-gold/30 text-foreground;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ===============================================
+   UTILITY LAYER: CLAY SHADOWS
+   =============================================== */
+
+@layer utilities {
+  /* Clay Shadow Utilities */
+  .shadow-clay {
+    box-shadow: 5px 5px 10px #d6d3d1, -5px -5px 10px #ffffff;
+  }
+  
+  .shadow-clay-sm {
+    box-shadow: 3px 3px 6px #d6d3d1, -3px -3px 6px #ffffff;
+  }
+  
+  .shadow-clay-lg {
+    box-shadow: 8px 8px 16px #d6d3d1, -8px -8px 16px #ffffff;
+  }
+  
+  .shadow-clay-inset {
+    box-shadow: inset 2px 2px 5px #d6d3d1, inset -2px -2px 5px #ffffff;
+  }
+  
+  .shadow-clay-pressed {
+    box-shadow: inset 2px 2px 5px #d6d3d1, inset -2px -2px 5px #ffffff;
+  }
+
+  /* Dark mode clay shadows */
+  .dark .shadow-clay {
+    box-shadow: 5px 5px 10px #0c0a09, -5px -5px 10px #292524;
+  }
+  
+  .dark .shadow-clay-sm {
+    box-shadow: 3px 3px 6px #0c0a09, -3px -3px 6px #292524;
+  }
+  
+  .dark .shadow-clay-lg {
+    box-shadow: 8px 8px 16px #0c0a09, -8px -8px 16px #292524;
+  }
+  
+  .dark .shadow-clay-inset {
+    box-shadow: inset 2px 2px 5px #0c0a09, inset -2px -2px 5px #292524;
+  }
+  
+  .dark .shadow-clay-pressed {
+    box-shadow: inset 2px 2px 5px #0c0a09, inset -2px -2px 5px #292524;
+  }
+
+  /* Gradient text utility */
+  .text-gradient-gold {
+    @apply bg-gradient-to-r from-aura-gold via-aura-gold-light to-aura-gold bg-clip-text text-transparent;
+  }
+
+  /* Glass effect for dark mode */
+  .glass {
+    @apply bg-background/80 backdrop-blur-xl;
+  }
+}
+
+/* ===============================================
+   COMPONENT LAYER: ANIMATIONS
+   =============================================== */
+
+@layer components {
+  /* Smooth press animation */
+  .clay-press {
+    @apply transition-all duration-150 ease-out;
+  }
+  
+  .clay-press:active {
+    @apply shadow-clay-pressed scale-[0.98];
+  }
+
+  /* Hover lift effect */
+  .clay-hover {
+    @apply transition-all duration-200 ease-out;
+  }
+  
+  .clay-hover:hover {
+    @apply shadow-clay-lg -translate-y-0.5;
+  }
+
+  /* Pulse animation for points */
+  @keyframes aura-pulse {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.8;
+      transform: scale(1.05);
+    }
+  }
+  
+  .animate-aura-pulse {
+    animation: aura-pulse 2s ease-in-out infinite;
+  }
+
+  /* Shimmer effect for loading states */
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+  
+  .animate-shimmer {
+    animation: shimmer 1.5s infinite;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(251, 191, 36, 0.1) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+  }
 }
