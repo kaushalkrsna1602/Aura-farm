@@ -11,14 +11,16 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { giveAuraAction } from "@/actions/aura";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 
 interface Member {
     user_id: string;
     role: string;
     aura_points: number;
     profiles: {
-        full_name: string;
-        avatar_url: string;
+        full_name: string | null;
+        avatar_url: string | null;
     } | null; // profiles might be single object or array depending on join
 }
 
@@ -35,12 +37,18 @@ export function GiveAuraDialog({
 }) {
     const [open, setOpen] = useState(false);
     const [loadingId, setLoadingId] = useState<string | null>(null);
+    const [reason, setReason] = useState("Quick Boost");
 
     const handleGive = async (targetUserId: string) => {
         setLoadingId(targetUserId);
-        await giveAuraAction(groupId, targetUserId, 1);
+        const res = await giveAuraAction(groupId, targetUserId, 1, reason);
         setLoadingId(null);
-        // Logic to close dialog? Maybe keep open to give more.
+        if (res?.message) {
+            toast.error(res.message);
+        } else {
+            toast.success("Sent 1 Aura!");
+            setReason("Quick Boost");
+        }
     };
 
     const eligibleMembers = members.filter(m => m.user_id !== currentUserId);
@@ -58,7 +66,16 @@ export function GiveAuraDialog({
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="flex-1 overflow-y-auto space-y-3 p-1 pr-2 mt-4 scrollbar-hide">
+                <div className="px-1 mt-2 mb-2">
+                    <Input
+                        placeholder="Reason (e.g. Great code review!)"
+                        value={reason}
+                        onChange={(e) => setReason(e.target.value)}
+                        className="bg-white"
+                    />
+                </div>
+
+                <div className="flex-1 overflow-y-auto space-y-3 p-1 pr-2 mt-2 scrollbar-hide">
                     {eligibleMembers.length > 0 ? (
                         eligibleMembers.map(member => (
                             <div key={member.user_id} className="flex items-center justify-between p-4 bg-stone-50 rounded-2xl shadow-sm border border-stone-100 hover:border-aura-gold/30 transition-colors">
@@ -92,7 +109,7 @@ export function GiveAuraDialog({
                         ))
                     ) : (
                         <div className="text-center py-10 text-stone-400">
-                            <p>It's just you here!</p>
+                            <p>It&apos;s just you here!</p>
                             <p className="text-sm">Invite friends to start giving aura.</p>
                         </div>
                     )}

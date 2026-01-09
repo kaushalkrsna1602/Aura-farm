@@ -3,7 +3,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 
-export async function giveAuraAction(groupId: string, targetUserId: string, amount: number = 1) {
+export async function giveAuraAction(groupId: string, targetUserId: string, amount: number = 1, message: string = "Quick Boost") {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -20,7 +20,7 @@ export async function giveAuraAction(groupId: string, targetUserId: string, amou
                 from_id: user.id,
                 to_id: targetUserId,
                 amount: amount,
-                reason: "Quick Boost",
+                reason: message,
             });
 
         if (transactionError) {
@@ -28,33 +28,22 @@ export async function giveAuraAction(groupId: string, targetUserId: string, amou
             return { message: "Failed to give aura." };
         }
 
-        // 2. Update Member Aura Points
-        // We need to fetch current points first or use atomic increment if possible.
-        // Supabase/Postgres doesn't have a simple increment via API without RPC usually, but let's try to fetch and update.
-        // Ideally we use an RPC function `increment_aura` but I'll do read-modify-write for MVP.
+        // 2. Atomic Update via RPC
+        // @ts-ignore
+        const { error: rpcError } = await supabase.rpc('increment_aura', {
+            p_group_id: groupId,
+            p_user_id: targetUserId,
+            p_amount: amount
+        });
 
-        const { data: member, error: fetchError } = await supabase
-            .from("members")
-            .select("aura_points")
-            .eq("group_id", groupId)
-            .eq("user_id", targetUserId)
-            .single();
-
-        if (fetchError || !member) {
-            return { message: "Member not found." };
-        }
-
-        const newPoints = member.aura_points + amount;
-
-        const { error: updateError } = await supabase
-            .from("members")
-            .update({ aura_points: newPoints })
-            .eq("group_id", groupId)
-            .eq("user_id", targetUserId);
-
-        if (updateError) {
-            console.error("UPDATE ERROR:", updateError);
-            return { message: "Failed to update points." };
+        if (rpcError) {
+            console.error("RPC ERROR:", rpcError);
+            // Fallback to manual update if RPC fails (e.g. function not created yet)
+            // But for now, let's treat it as critical failure or try manual as backup?
+            // Sticking to "Production Candidate" means we expect RPC to work.
+            // But to be safe during dev transitions, maybe fetch/update fallback is nice, 
+            // BUT the user specifically asked to use RPC. So I will return error.
+            return { message: "Failed to update points. Check database functions." };
         }
 
         revalidatePath(`/group/${groupId}`);

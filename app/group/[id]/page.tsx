@@ -26,7 +26,7 @@ export default async function GroupPage(props: { params: Promise<{ id: string }>
     }
 
     // 2. Fetch Members (Leaderboard) with Profiles
-    const { data: members, error: membersError } = await supabase
+    const { data: members } = await supabase
         .from("members")
         .select(`
       *,
@@ -158,7 +158,7 @@ export default async function GroupPage(props: { params: Promise<{ id: string }>
                                             Give Aura
                                         </ClayButton>
                                     }
-                                    members={members as any}
+                                    members={members || []}
                                     groupId={group.id}
                                     currentUserId={user?.id || ""}
                                 />
