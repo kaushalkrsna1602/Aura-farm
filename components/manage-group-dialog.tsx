@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { ClayButton } from "@/components/ui/clay-button";
 import {
     Dialog,
@@ -30,9 +31,16 @@ export function ManageGroupDialog({
     const [newName, setNewName] = useState(group.name);
     const [loading, setLoading] = useState(false);
 
+    const router = useRouter();
+
     useEffect(() => {
         setOrigin(window.location.origin);
     }, []);
+
+    // Sync local state with prop when group updates (e.g. after refresh)
+    useEffect(() => {
+        setNewName(group.name);
+    }, [group.name]);
 
     const invitePath = `/group/${group.id}`;
     const inviteUrl = origin ? `${origin}${invitePath}` : invitePath;
@@ -47,8 +55,6 @@ export function ManageGroupDialog({
 
     const handleUpdateName = async () => {
         setLoading(true);
-        // Import dynamically to avoid server action issues in client component if not passed properly? 
-        // No, import from actions is fine.
         const { updateGroupAction } = await import("@/actions/groups");
         const res = await updateGroupAction(group.id, newName);
         if (res?.message) {
@@ -56,7 +62,7 @@ export function ManageGroupDialog({
         } else {
             toast.success("Tribe name updated!");
             setIsEditing(false);
-            window.location.reload(); // Force full reload to verify updates if router.refresh is flaky
+            router.refresh();
         }
         setLoading(false);
     };
@@ -71,7 +77,8 @@ export function ManageGroupDialog({
             setLoading(false); // Only stop loading if error, otherwise we redirect
         } else {
             toast.success("Left tribe.");
-            window.location.href = "/dashboard"; // Hard redirect to dashboard
+            router.push("/dashboard");
+            router.refresh();
         }
     };
 

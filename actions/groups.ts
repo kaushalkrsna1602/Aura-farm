@@ -160,14 +160,19 @@ export async function updateGroupAction(groupId: string, newName: string) {
       return { message: "Only admins can update the group." };
     }
 
-    const { error } = await supabase
+    const { data: updatedGroup, error } = await supabase
       .from("groups")
       .update({ name: newName })
-      .eq("id", groupId);
+      .eq("id", groupId)
+      .select();
 
     if (error) {
       console.error("UPDATE GROUP ERROR:", error);
       return { message: "Failed to update group." };
+    }
+
+    if (!updatedGroup || updatedGroup.length === 0) {
+      return { message: "Update failed. You may not have permission." };
     }
 
     revalidatePath(`/group/${groupId}`);
