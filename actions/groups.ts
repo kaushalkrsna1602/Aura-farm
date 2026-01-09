@@ -140,3 +140,106 @@ export async function joinGroupAction(groupId: string) {
     return { message: "Unexpected error" };
   }
 }
+
+export async function updateGroupAction(groupId: string, newName: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) return { message: "Unauthorized" };
+
+  try {
+    // Check if admin
+    const { data: member } = await supabase
+      .from("members")
+      .select("role")
+      .eq("group_id", groupId)
+      .eq("user_id", user.id)
+      .single();
+
+    if (member?.role !== 'admin') {
+      return { message: "Only admins can update the group." };
+    }
+
+    const { error } = await supabase
+      .from("groups")
+      .update({ name: newName })
+      .eq("id", groupId);
+
+    if (error) {
+      console.error("UPDATE GROUP ERROR:", error);
+      return { message: "Failed to update group." };
+    }
+
+    revalidatePath(`/group/${groupId}`);
+    revalidatePath("/dashboard");
+    return { success: true };
+
+  } catch (e) {
+    return { message: "Unexpected error" };
+  }
+}
+
+export async function leaveGroupAction(groupId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) return { message: "Unauthorized" };
+
+  try {
+    const { error } = await supabase
+      .from("members")
+      .delete()
+      .eq("group_id", groupId)
+      .eq("user_id", user.id);
+
+    if (error) {
+      console.error("LEAVE GROUP ERROR:", error);
+      return { message: "Failed to leave group." };
+    }
+
+    revalidatePath(`/group/${groupId}`);
+    revalidatePath("/dashboard");
+    return { success: true };
+
+  } catch (e) {
+    return { message: "Unexpected error" };
+  }
+}
+
+export async function removeMemberAction(groupId: string, targetUserId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) return { message: "Unauthorized" };
+
+  try {
+    // Check if requester is admin
+    const { data: requester } = await supabase
+      .from("members")
+      .select("role")
+      .eq("group_id", groupId)
+      .eq("user_id", user.id)
+      .single();
+
+    if (requester?.role !== 'admin') {
+      return { message: "Only admins can remove members." };
+    }
+
+    const { error } = await supabase
+      .from("members")
+      .delete()
+      .eq("group_id", groupId)
+      .eq("user_id", targetUserId);
+
+    if (error) {
+      console.error("REMOVE MEMBER ERROR:", error);
+      return { message: "Failed to remove member." };
+    }
+
+    revalidatePath(`/group/${groupId}`);
+    return { success: true };
+
+  } catch (e) {
+    return { message: "Unexpected error" };
+  }
+}

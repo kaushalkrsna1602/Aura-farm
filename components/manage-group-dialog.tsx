@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 export function ManageGroupDialog({
     trigger,
@@ -23,6 +24,11 @@ export function ManageGroupDialog({
     const [open, setOpen] = useState(false);
     const [copied, setCopied] = useState(false);
     const [origin, setOrigin] = useState("");
+
+    // Edit Mode State
+    const [isEditing, setIsEditing] = useState(false);
+    const [newName, setNewName] = useState(group.name);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         setOrigin(window.location.origin);
@@ -36,6 +42,35 @@ export function ManageGroupDialog({
         navigator.clipboard.writeText(fullUrl);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
+        toast.success("Link copied!");
+    };
+
+    const handleUpdateName = async () => {
+        setLoading(true);
+        // Import dynamically to avoid server action issues in client component if not passed properly? 
+        // No, import from actions is fine.
+        const { updateGroupAction } = await import("@/actions/groups");
+        const res = await updateGroupAction(group.id, newName);
+        if (res?.message) {
+            toast.error(res.message);
+        } else {
+            toast.success("Tribe name updated!");
+            setIsEditing(false);
+        }
+        setLoading(false);
+    };
+
+    const handleLeaveTribe = async () => {
+        if (!confirm("Are you sure you want to leave this tribe?")) return;
+        setLoading(true);
+        const { leaveGroupAction } = await import("@/actions/groups");
+        const res = await leaveGroupAction(group.id);
+        if (res?.message) {
+            toast.error(res.message);
+            setLoading(false); // Only stop loading if error, otherwise we redirect
+        } else {
+            toast.success("Left tribe.");
+        }
     };
 
     return (
@@ -87,10 +122,36 @@ export function ManageGroupDialog({
                     <div className="pt-2">
                         <h4 className="text-sm font-bold text-stone-700 mb-2">Tribe Admin Actions</h4>
                         <div className="grid grid-cols-1 gap-2">
-                            <ClayButton variant="outline" className="w-full justify-start text-stone-600 hover:text-stone-800" leftIcon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>}>
-                                Edit Tribe Name
+                            {isEditing ? (
+                                <div className="flex gap-2">
+                                    <Input
+                                        value={newName}
+                                        onChange={(e) => setNewName(e.target.value)}
+                                        className="h-11"
+                                    />
+                                    <ClayButton variant="primary" onClick={handleUpdateName} isLoading={loading}>Save</ClayButton>
+                                    <ClayButton variant="ghost" onClick={() => setIsEditing(false)}>Cancel</ClayButton>
+                                </div>
+                            ) : (
+                                <ClayButton
+                                    variant="outline"
+                                    className="w-full justify-start text-stone-600 hover:text-stone-800"
+                                    onClick={() => setIsEditing(true)}
+                                    leftIcon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>}
+                                >
+                                    Edit Tribe Name
+                                </ClayButton>
+                            )}
+
+                            <ClayButton
+                                variant="danger"
+                                className="w-full justify-start"
+                                onClick={handleLeaveTribe}
+                                isLoading={loading}
+                                leftIcon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>}
+                            >
+                                Leave Tribe
                             </ClayButton>
-                            {/* Placeholder for future delete/leave functionality */}
                         </div>
                     </div>
                 </div>
