@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Aura Farm - Farm Aura. Redeem Life.",
-    template: "%s | Aura Farm",
+    default: "FarmAura - Farm Aura. Redeem Life.",
+    template: "%s | FarmAura",
   },
   description:
     "A social gamification platform where teams and friends give Aura Points to each other and redeem them for rewards.",
@@ -31,14 +31,14 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    siteName: "Aura Farm",
-    title: "Aura Farm - Farm Aura. Redeem Life.",
+    siteName: "FarmAura",
+    title: "FarmAura - Farm Aura. Redeem Life.",
     description:
       "A social gamification platform where teams and friends give Aura Points to each other and redeem them for rewards.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Aura Farm - Farm Aura. Redeem Life.",
+    title: "FarmAura - Farm Aura. Redeem Life.",
     description:
       "A social gamification platform where teams and friends give Aura Points to each other and redeem them for rewards.",
   },

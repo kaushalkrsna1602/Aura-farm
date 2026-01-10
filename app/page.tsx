@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ClayButton } from "@/components/ui/clay-button";
 import { ClayCard } from "@/components/ui/clay-card";
+import { createClient } from "@/utils/supabase/server";
 
 /**
  * Landing Page
@@ -8,7 +9,9 @@ import { ClayCard } from "@/components/ui/clay-card";
  * The public entry point for the application.
  * Showcases the value proposition and provides entry to the app.
  */
-export default function LandingPage() {
+export default async function LandingPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
   return (
     <main className="min-h-screen bg-background flex flex-col items-center justify-center p-6 relative overflow-hidden">
       {/* Decorative Background */}
@@ -35,13 +38,13 @@ export default function LandingPage() {
               />
             </svg>
           </div>
-          
+
           <h1 className="text-5xl md:text-7xl font-black tracking-tight text-foreground clay-text">
-            Aura<span className="text-transparent bg-clip-text bg-gradient-to-r from-aura-gold via-aura-gold-dark to-aura-gold">Farm</span>
+            Farm<span className="text-transparent bg-clip-text bg-gradient-to-r from-aura-gold via-aura-gold-dark to-aura-gold">Aura</span>
           </h1>
-          
+
           <p className="text-xl md:text-2xl text-muted-foreground font-medium max-w-2xl mx-auto">
-            Gamify your social circle. Give points. <br className="hidden md:block"/>
+            Gamify your social circle. Give points. <br className="hidden md:block" />
             Redeem experiences. Live better.
           </p>
         </div>
@@ -49,9 +52,9 @@ export default function LandingPage() {
         {/* CTA Section */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
           <Link href="/dashboard">
-            <ClayButton 
-              size="lg" 
-              variant="primary" 
+            <ClayButton
+              size="lg"
+              variant="primary"
               className="h-16 px-10 text-xl shadow-clay-lg"
               rightIcon={
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -62,28 +65,30 @@ export default function LandingPage() {
               Start Farming Aura
             </ClayButton>
           </Link>
-          
-          <Link href="/login">
-            <ClayButton size="lg" variant="ghost" className="h-16 px-8 text-lg">
-              Sign In
-            </ClayButton>
-          </Link>
+
+          {!user && (
+            <Link href="/login">
+              <ClayButton size="lg" variant="ghost" className="h-16 px-8 text-lg">
+                Sign In
+              </ClayButton>
+            </Link>
+          )}
         </div>
 
         {/* Features Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left mt-16">
-          <FeatureCard 
-            title="Create Tribes" 
+          <FeatureCard
+            title="Create Tribes"
             desc="Form groups with friends, coworkers, or family."
             icon="users"
           />
-          <FeatureCard 
-            title="Give Aura" 
+          <FeatureCard
+            title="Give Aura"
             desc="Recognize good vibes and helpful actions instantly."
             icon="zap"
           />
-          <FeatureCard 
-            title="Redeem Rewards" 
+          <FeatureCard
+            title="Redeem Rewards"
             desc="Exchange points for real-life rewards and perks."
             icon="gift"
           />
@@ -110,9 +115,9 @@ function FeatureCard({ title, desc, icon }: { title: string; desc: string; icon:
         {icon === 'gift' && (
           <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4M16 8l-4-4-4 4" />
-             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /> 
-             {/* Simple box icon replacement for clarity */}
-             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            {/* Simple box icon replacement for clarity */}
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
           </svg>
         )}
       </div>
