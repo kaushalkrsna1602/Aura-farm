@@ -158,7 +158,7 @@ export function ManageRewardsDialog({
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>{trigger}</DialogTrigger>
-            <DialogContent className="w-[95vw] sm:max-w-lg bg-stone-50 border-stone-200 shadow-clay rounded-3xl max-h-[85vh] overflow-y-auto">
+            <DialogContent className="w-[95vw] sm:max-w-lg bg-stone-50 border-stone-200 shadow-clay rounded-3xl max-h-[85vh] overflow-y-auto scrollbar-clay">
                 <DialogHeader>
                     <DialogTitle className="text-2xl font-black text-stone-800">
                         Manage Rewards

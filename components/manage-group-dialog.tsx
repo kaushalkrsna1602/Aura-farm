@@ -133,7 +133,6 @@ export function ManageGroupDialog({
                             </p>
                         </div>
 
-                        {/* Admin Actions */}
                         <div className="pt-2">
                             <h4 className="text-sm font-bold text-stone-700 mb-2">Tribe Admin Actions</h4>
                             <div className="grid grid-cols-1 gap-2">
@@ -166,6 +165,47 @@ export function ManageGroupDialog({
                                     leftIcon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>}
                                 >
                                     Leave Tribe
+                                </ClayButton>
+                            </div>
+                        </div>
+
+                        {/* Danger Zone - Delete Tribe */}
+                        <div className="pt-4 mt-2 border-t border-red-100">
+                            <div className="bg-red-50 rounded-xl p-4 border border-red-100">
+                                <h4 className="text-sm font-bold text-red-800 mb-1 flex items-center gap-2">
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                                    Danger Zone
+                                </h4>
+                                <p className="text-xs text-red-600 mb-3 leading-relaxed">
+                                    Permanently delete this tribe and all its data. This action cannot be undone.
+                                </p>
+                                <ClayButton
+                                    variant="danger"
+                                    className="w-full justify-center bg-red-100/50 hover:bg-red-500 text-red-600 hover:text-white border-red-200 hover:border-red-600 transition-all font-bold text-xs h-9 uppercase tracking-wide"
+                                    onClick={async () => {
+                                        if (confirm(`Are you absolutely sure you want to delete "${group.name}"? This cannot be undone.`)) {
+                                            // Double confirm for safety
+                                            const confirmation = prompt(`Type "${group.name}" to confirm deletion:`);
+                                            if (confirmation === group.name) {
+                                                setLoading(true);
+                                                const { deleteGroupAction } = await import("@/actions/groups");
+                                                const res = await deleteGroupAction(group.id);
+
+                                                if (res?.message) {
+                                                    toast.error(res.message);
+                                                    setLoading(false);
+                                                } else {
+                                                    toast.success("Tribe deleted.");
+                                                    router.push("/dashboard");
+                                                }
+                                            } else if (confirmation !== null) {
+                                                toast.error("Tribe name did not match. Deletion cancelled.");
+                                            }
+                                        }
+                                    }}
+                                    isLoading={loading}
+                                >
+                                    Delete Tribe
                                 </ClayButton>
                             </div>
                         </div>

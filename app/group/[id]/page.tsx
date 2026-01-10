@@ -5,11 +5,11 @@ import { ClayButton } from "@/components/ui/clay-button";
 import Link from "next/link";
 import { JoinGroupButton } from "@/components/join-group-button";
 import { ManageGroupDialog } from "@/components/manage-group-dialog";
-import { GiveAuraDialog } from "@/components/give-aura-dialog";
 import { ManageRewardsDialog } from "@/components/manage-rewards-dialog";
-import { RedeemRewardDialog } from "@/components/redeem-reward-dialog";
-import { getRewardIcon } from "@/utils/reward-icons";
-import { Zap, Settings, ArrowLeft, Gift } from "lucide-react";
+import { RewardsListDialog } from "@/components/rewards-list-dialog";
+import { Settings, ArrowLeft, Gift } from "lucide-react";
+import { GiveAuraToUserDialog } from "@/components/give-aura-to-user-dialog";
+import { ActivityFeed } from "@/components/activity-feed";
 
 export default async function GroupPage(props: { params: Promise<{ id: string }> }) {
     const params = await props.params;
@@ -51,9 +51,40 @@ export default async function GroupPage(props: { params: Promise<{ id: string }>
         .eq("group_id", group.id)
         .order("cost", { ascending: true });
 
+    // 4. Using server client to fetch Transactions (Activity Feed)
+    const { data: transactions } = await supabase
+        .from("transactions")
+        .select(`
+            id,
+            amount,
+            reason,
+            created_at,
+            from_profile:from_id (
+                full_name,
+                avatar_url
+            ),
+            to_profile:to_id (
+                full_name,
+                avatar_url
+            )
+        `)
+        .eq("group_id", group.id)
+        .order("created_at", { ascending: false })
+        .limit(50);
+
     const currentUserMember = members?.find((m) => m.user_id === user?.id);
     const isMember = !!currentUserMember;
     const isAdmin = currentUserMember?.role === "admin";
+
+    // Transform transactions to match the component's expected interface (handling array vs single object for relations)
+    const formattedTransactions = transactions?.map(tx => ({
+        ...tx,
+        // Supabase types sometimes return array or single object depending on relationship setup
+        from_profile: Array.isArray(tx.from_profile) ? tx.from_profile[0] : tx.from_profile,
+        // Supabase types sometimes return array or single object depending on relationship setup
+        to_profile: Array.isArray(tx.to_profile) ? tx.to_profile[0] : tx.to_profile,
+    })) || [];
+
 
     if (!isMember) {
         return (
@@ -124,24 +155,32 @@ export default async function GroupPage(props: { params: Promise<{ id: string }>
 
                         <div className="space-y-4">
                             {members?.map((member, idx) => (
-                                <ClayCard key={member.user_id} className="flex items-center justify-between p-4 bg-stone-50/80 hover:bg-stone-50 transition-colors" size="sm">
-                                    <div className="flex items-center gap-4">
-                                        <div className={`w-8 h-8 flex items-center justify-center font-bold rounded-full ${idx === 0 ? 'bg-aura-gold text-white shadow-clay-sm' : idx === 1 ? 'bg-stone-300 text-white' : idx === 2 ? 'bg-orange-300 text-white' : 'text-stone-400'}`}>
+                                <ClayCard key={member.user_id} className="flex flex-row items-center justify-between p-3 md:p-4 bg-stone-50/80 hover:bg-stone-50 transition-colors" size="sm">
+                                    <div className="flex items-center gap-3 md:gap-4 overflow-hidden">
+                                        <div className={`w-6 h-6 md:w-8 md:h-8 flex shrink-0 items-center justify-center font-bold rounded-full text-xs md:text-sm ${idx === 0 ? 'bg-aura-gold text-white shadow-clay-sm' : idx === 1 ? 'bg-stone-300 text-white' : idx === 2 ? 'bg-orange-300 text-white' : 'text-stone-400'}`}>
                                             {idx + 1}
                                         </div>
-                                        <div className="w-12 h-12 rounded-full bg-stone-200 overflow-hidden border-2 border-white shadow-sm">
+                                        <div className="w-10 h-10 md:w-12 md:h-12 shrink-0 rounded-full bg-stone-200 overflow-hidden border-2 border-white shadow-sm">
                                             <img src={member.profiles?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${member.user_id}`} alt="Avatar" className="w-full h-full object-cover" />
                                         </div>
-                                        <div>
-                                            <p className="font-bold text-stone-700 flex items-center gap-2">
-                                                {member.profiles?.full_name}
-                                                {member.role === 'admin' && <span className="text-[10px] bg-stone-200 text-stone-500 px-1.5 py-0.5 rounded font-bold uppercase">Admin</span>}
+                                        <div className="min-w-0">
+                                            <p className="font-bold text-stone-700 flex items-center gap-2 truncate text-sm md:text-base">
+                                                <span className="truncate">{member.profiles?.full_name}</span>
+                                                {member.role === 'admin' && <span className="shrink-0 text-[10px] bg-stone-200 text-stone-500 px-1.5 py-0.5 rounded font-bold uppercase hidden sm:inline-block">Admin</span>}
                                             </p>
-                                            <p className="text-xs text-stone-400">Master Farmer</p>
+                                            <p className="text-xs text-stone-400 truncate">Master Farmer</p>
                                         </div>
                                     </div>
-                                    <div className="text-right">
-                                        <p className="text-xl font-black text-aura-gold-dark">{member.aura_points} <span className="text-sm font-medium text-stone-400">AP</span></p>
+                                    <div className="text-right flex items-center gap-2 md:gap-4 shrink-0 pl-2">
+                                        <div className="flex flex-col items-end">
+                                            <p className="text-lg md:text-xl font-black text-aura-gold-dark">{member.aura_points} <span className="text-xs md:text-sm font-medium text-stone-400">AP</span></p>
+                                        </div>
+                                        {member.user_id !== user?.id && (
+                                            <GiveAuraToUserDialog
+                                                member={member}
+                                                groupId={group.id}
+                                            />
+                                        )}
                                     </div>
                                 </ClayCard>
                             ))}
@@ -156,15 +195,15 @@ export default async function GroupPage(props: { params: Promise<{ id: string }>
                             <div className="grid grid-cols-2 gap-3">
 
 
-                                <GiveAuraDialog
+                                <RewardsListDialog
                                     trigger={
-                                        <ClayButton variant="primary" className="h-20 flex-col gap-1 text-sm shadow-sm bg-white" leftIcon={<Zap className="w-6 h-6 text-aura-gold-dark" />}>
-                                            Give Aura
+                                        <ClayButton variant="primary" className="h-20 flex-col gap-1 text-sm shadow-sm bg-white" leftIcon={<Gift className="w-6 h-6 text-aura-gold-dark" />}>
+                                            Redeem Rewards
                                         </ClayButton>
                                     }
-                                    members={members || []}
+                                    rewards={rewards || []}
                                     groupId={group.id}
-                                    currentUserId={user?.id || ""}
+                                    userPoints={currentUserMember?.aura_points || 0}
                                 />
                                 <ManageGroupDialog
                                     group={group}
@@ -196,56 +235,12 @@ export default async function GroupPage(props: { params: Promise<{ id: string }>
                             )}
                         </ClayCard>
 
-                        {/* Rewards Shop */}
+                        {/* Activity Feed */}
                         <div>
-                            <h2 className="text-2xl font-bold text-stone-700 mb-4">Rewards Shop</h2>
-                            <div className="space-y-4">
-                                {rewards && rewards.length > 0 ? (
-                                    rewards.map(reward => {
-                                        const userPoints = currentUserMember?.aura_points || 0;
-                                        const canAfford = userPoints >= reward.cost;
-
-                                        return (
-                                            <RedeemRewardDialog
-                                                key={reward.id}
-                                                reward={reward}
-                                                groupId={group.id}
-                                                userPoints={userPoints}
-                                                trigger={
-                                                    <ClayCard
-                                                        size="sm"
-                                                        className={`relative group overflow-hidden transition-all cursor-pointer ${canAfford
-                                                            ? "hover:border-aura-gold/50 hover:shadow-md"
-                                                            : "opacity-60 hover:opacity-80"
-                                                            }`}
-                                                        interactive
-                                                    >
-                                                        <div className="flex justify-between items-start">
-                                                            <div className="w-10 h-10 rounded-xl bg-stone-100 flex items-center justify-center text-xl shadow-inner">
-                                                                {getRewardIcon(reward.icon)}
-                                                            </div>
-                                                            <div className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm border ${canAfford
-                                                                ? "bg-aura-gold/10 text-aura-gold-dark border-aura-gold/20"
-                                                                : "bg-stone-100 text-stone-600 border-stone-200"
-                                                                }`}>
-                                                                {reward.cost} AP
-                                                            </div>
-                                                        </div>
-                                                        <h4 className="font-bold text-stone-700 mt-3">{reward.title}</h4>
-                                                        <p className="text-xs text-stone-400">
-                                                            {canAfford ? "Click to redeem" : `Need ${reward.cost - userPoints} more AP`}
-                                                        </p>
-                                                    </ClayCard>
-                                                }
-                                            />
-                                        );
-                                    })
-                                ) : (
-                                    <div className="text-center py-8 text-stone-400 bg-stone-50/50 rounded-3xl border border-stone-200 border-dashed">
-                                        <p>No rewards available yet.</p>
-                                    </div>
-                                )}
-                            </div>
+                            <ActivityFeed
+                                transactions={formattedTransactions}
+                                currentUserId={user?.id}
+                            />
                         </div>
                     </div>
 
