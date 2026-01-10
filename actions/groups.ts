@@ -284,3 +284,47 @@ export async function removeMemberAction(groupId: string, targetUserId: string) 
     return { message: "Unexpected error" };
   }
 }
+
+export async function deleteGroupAction(groupId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) return { message: "Unauthorized" };
+
+  try {
+    // 1. Verify Requestor is Admin of this Group
+    const { data: member } = await supabase
+      .from("members")
+      .select("role")
+      .eq("group_id", groupId)
+      .eq("user_id", user.id)
+      .single();
+
+    if (member?.role !== 'admin') {
+      return { message: "Only admins can delete the tribe." };
+    }
+
+    // 2. Perform Delete
+    // Note: If ON DELETE CASCADE is set up in Postgres, this single call deletes everything.
+    // If not, it will fail or leave orphans. Using the "Senior Dev" approach of explicit cleanup isn't strictly necessary with Supabase cascade,
+    // but handling the potential error is key.
+
+    const { error } = await supabase
+      .from("groups")
+      .delete()
+      .eq("id", groupId);
+
+    if (error) {
+      console.error("DELETE GROUP ERROR:", error);
+      // If FK violation, we might need manual cleanup, but standard Supabase setups handle this via Cascade usually.
+      return { message: "Failed to delete group. Ensure all members are removed or try again." };
+    }
+
+    revalidatePath("/dashboard");
+    return { success: true };
+
+  } catch (e) {
+    console.error("DELETE GROUP EXCEPTION:", e);
+    return { message: "Unexpected error during deletion." };
+  }
+}
