@@ -10,6 +10,7 @@ import { ManageRewardsDialog } from "@/components/manage-rewards-dialog";
 import { RedeemRewardDialog } from "@/components/redeem-reward-dialog";
 import { getRewardIcon } from "@/utils/reward-icons";
 import { Zap, Settings, ArrowLeft, Gift } from "lucide-react";
+import { GiveAuraToUserDialog } from "@/components/give-aura-to-user-dialog";
 
 export default async function GroupPage(props: { params: Promise<{ id: string }> }) {
     const params = await props.params;
@@ -124,24 +125,32 @@ export default async function GroupPage(props: { params: Promise<{ id: string }>
 
                         <div className="space-y-4">
                             {members?.map((member, idx) => (
-                                <ClayCard key={member.user_id} className="flex items-center justify-between p-4 bg-stone-50/80 hover:bg-stone-50 transition-colors" size="sm">
-                                    <div className="flex items-center gap-4">
-                                        <div className={`w-8 h-8 flex items-center justify-center font-bold rounded-full ${idx === 0 ? 'bg-aura-gold text-white shadow-clay-sm' : idx === 1 ? 'bg-stone-300 text-white' : idx === 2 ? 'bg-orange-300 text-white' : 'text-stone-400'}`}>
+                                <ClayCard key={member.user_id} className="flex flex-row items-center justify-between p-3 md:p-4 bg-stone-50/80 hover:bg-stone-50 transition-colors" size="sm">
+                                    <div className="flex items-center gap-3 md:gap-4 overflow-hidden">
+                                        <div className={`w-6 h-6 md:w-8 md:h-8 flex shrink-0 items-center justify-center font-bold rounded-full text-xs md:text-sm ${idx === 0 ? 'bg-aura-gold text-white shadow-clay-sm' : idx === 1 ? 'bg-stone-300 text-white' : idx === 2 ? 'bg-orange-300 text-white' : 'text-stone-400'}`}>
                                             {idx + 1}
                                         </div>
-                                        <div className="w-12 h-12 rounded-full bg-stone-200 overflow-hidden border-2 border-white shadow-sm">
+                                        <div className="w-10 h-10 md:w-12 md:h-12 shrink-0 rounded-full bg-stone-200 overflow-hidden border-2 border-white shadow-sm">
                                             <img src={member.profiles?.avatar_url || `https://api.dicebear.com/7.x/notionists/svg?seed=${member.user_id}`} alt="Avatar" className="w-full h-full object-cover" />
                                         </div>
-                                        <div>
-                                            <p className="font-bold text-stone-700 flex items-center gap-2">
-                                                {member.profiles?.full_name}
-                                                {member.role === 'admin' && <span className="text-[10px] bg-stone-200 text-stone-500 px-1.5 py-0.5 rounded font-bold uppercase">Admin</span>}
+                                        <div className="min-w-0">
+                                            <p className="font-bold text-stone-700 flex items-center gap-2 truncate text-sm md:text-base">
+                                                <span className="truncate">{member.profiles?.full_name}</span>
+                                                {member.role === 'admin' && <span className="shrink-0 text-[10px] bg-stone-200 text-stone-500 px-1.5 py-0.5 rounded font-bold uppercase hidden sm:inline-block">Admin</span>}
                                             </p>
-                                            <p className="text-xs text-stone-400">Master Farmer</p>
+                                            <p className="text-xs text-stone-400 truncate">Master Farmer</p>
                                         </div>
                                     </div>
-                                    <div className="text-right">
-                                        <p className="text-xl font-black text-aura-gold-dark">{member.aura_points} <span className="text-sm font-medium text-stone-400">AP</span></p>
+                                    <div className="text-right flex items-center gap-2 md:gap-4 shrink-0 pl-2">
+                                        <div className="flex flex-col items-end">
+                                            <p className="text-lg md:text-xl font-black text-aura-gold-dark">{member.aura_points} <span className="text-xs md:text-sm font-medium text-stone-400">AP</span></p>
+                                        </div>
+                                        {member.user_id !== user?.id && (
+                                            <GiveAuraToUserDialog
+                                                member={member}
+                                                groupId={group.id}
+                                            />
+                                        )}
                                     </div>
                                 </ClayCard>
                             ))}
