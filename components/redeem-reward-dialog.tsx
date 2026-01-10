@@ -12,6 +12,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { getRewardIcon } from "@/utils/reward-icons";
 import type { Reward } from "@/types/database";
 
 // ============================================================================
@@ -85,7 +86,7 @@ export function RedeemRewardDialog({
                     {/* Reward Display */}
                     <div className="text-center">
                         <div className="w-20 h-20 mx-auto bg-gradient-to-br from-aura-gold/20 to-orange-200/30 rounded-2xl flex items-center justify-center text-4xl shadow-inner mb-4">
-                            {reward.icon || "⭐"}
+                            {getRewardIcon(reward.icon)}
                         </div>
                         <h3 className="text-xl font-bold text-stone-800">
                             {reward.title}

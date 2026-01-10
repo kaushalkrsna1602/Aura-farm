@@ -8,6 +8,7 @@ import { ManageGroupDialog } from "@/components/manage-group-dialog";
 import { GiveAuraDialog } from "@/components/give-aura-dialog";
 import { ManageRewardsDialog } from "@/components/manage-rewards-dialog";
 import { RedeemRewardDialog } from "@/components/redeem-reward-dialog";
+import { getRewardIcon } from "@/utils/reward-icons";
 import { Zap, Settings, ArrowLeft, Gift } from "lucide-react";
 
 export default async function GroupPage(props: { params: Promise<{ id: string }> }) {
@@ -214,18 +215,18 @@ export default async function GroupPage(props: { params: Promise<{ id: string }>
                                                     <ClayCard
                                                         size="sm"
                                                         className={`relative group overflow-hidden transition-all cursor-pointer ${canAfford
-                                                                ? "hover:border-aura-gold/50 hover:shadow-md"
-                                                                : "opacity-60 hover:opacity-80"
+                                                            ? "hover:border-aura-gold/50 hover:shadow-md"
+                                                            : "opacity-60 hover:opacity-80"
                                                             }`}
                                                         interactive
                                                     >
                                                         <div className="flex justify-between items-start">
                                                             <div className="w-10 h-10 rounded-xl bg-stone-100 flex items-center justify-center text-xl shadow-inner">
-                                                                {reward.icon || "⭐"}
+                                                                {getRewardIcon(reward.icon)}
                                                             </div>
                                                             <div className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm border ${canAfford
-                                                                    ? "bg-aura-gold/10 text-aura-gold-dark border-aura-gold/20"
-                                                                    : "bg-stone-100 text-stone-600 border-stone-200"
+                                                                ? "bg-aura-gold/10 text-aura-gold-dark border-aura-gold/20"
+                                                                : "bg-stone-100 text-stone-600 border-stone-200"
                                                                 }`}>
                                                                 {reward.cost} AP
                                                             </div>

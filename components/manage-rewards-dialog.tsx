@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { getRewardIcon } from "@/utils/reward-icons";
 import type { Reward } from "@/types/database";
 
 // ============================================================================
@@ -212,8 +213,8 @@ export function ManageRewardsDialog({
                                         setFormData({ ...formData, icon })
                                     }
                                     className={`w-10 h-10 text-xl rounded-xl border-2 transition-all hover:scale-110 ${formData.icon === icon
-                                            ? "border-aura-gold bg-aura-gold/20 shadow-md"
-                                            : "border-stone-200 bg-white hover:border-stone-300"
+                                        ? "border-aura-gold bg-aura-gold/20 shadow-md"
+                                        : "border-stone-200 bg-white hover:border-stone-300"
                                         }`}
                                 >
                                     {icon}
@@ -255,13 +256,13 @@ export function ManageRewardsDialog({
                                 <div
                                     key={reward.id}
                                     className={`flex items-center justify-between p-3 bg-white rounded-xl border transition-colors ${editingId === reward.id
-                                            ? "border-aura-gold bg-aura-gold/5"
-                                            : "border-stone-200"
+                                        ? "border-aura-gold bg-aura-gold/5"
+                                        : "border-stone-200"
                                         }`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <span className="text-xl">
-                                            {reward.icon || "⭐"}
+                                            {getRewardIcon(reward.icon)}
                                         </span>
                                         <div>
                                             <p className="font-semibold text-stone-700">
