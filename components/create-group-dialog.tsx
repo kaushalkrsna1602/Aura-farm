@@ -69,12 +69,7 @@ export function CreateGroupDialog({
             )}
           </div>
 
-          <div className="flex items-center space-x-2">
-            <input type="checkbox" name="isPublic" id="isPublic" className="w-5 h-5 rounded text-aura-gold focus:ring-aura-gold border-gray-300" />
-            <Label htmlFor="isPublic" className="font-normal text-stone-600">
-              Anyone can join with a link (Public)
-            </Label>
-          </div>
+
 
           {state?.message && (
             <p className="text-sm text-aura-red text-center">{state.message}</p>

@@ -7,12 +7,6 @@ import { z } from "zod";
 
 const createGroupSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters").max(50),
-  description: z.string().optional(), // Note: description is not in the DB schema provided, checking if I explicitly need it. The prompt schema for groups ONLY has: id, name, is_public, invite_code, created_by.
-  // Wait, the prompt schema for 'groups' is: id, name, is_public, invite_code, created_by.
-  // There is NO description column in the provided schema. I will omit it from the DB insert, but maybe keep it in the UI if we want to add it later or if I missed it.
-  // Checking prompt again... "Table 2: groups (The Teams) - id, name, is_public, invite_code, created_by".
-  // Okay, no description. I will NOT insert description.
-  isPublic: z.boolean().default(false),
 });
 
 export type CreateGroupState = {
@@ -37,7 +31,6 @@ export async function createGroupAction(prevState: CreateGroupState | null, form
   // 2. Validate Input
   const validatedFields = createGroupSchema.safeParse({
     name: formData.get("name"),
-    isPublic: formData.get("isPublic") === "on",
   });
 
   if (!validatedFields.success) {
@@ -47,7 +40,7 @@ export async function createGroupAction(prevState: CreateGroupState | null, form
     };
   }
 
-  const { name, isPublic } = validatedFields.data;
+  const { name } = validatedFields.data;
   const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
   let groupId: string | null = null;
 
@@ -57,7 +50,7 @@ export async function createGroupAction(prevState: CreateGroupState | null, form
       .from("groups")
       .insert({
         name,
-        is_public: isPublic,
+        is_public: false, // Enforce private always
         invite_code: inviteCode,
         created_by: user.id,
       })
