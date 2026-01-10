@@ -15,10 +15,11 @@ export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  // Fetch user's groups
+  // Fetch user's groups with aura points
   const { data: members } = await supabase
     .from("members")
     .select(`
+      aura_points,
       group_id,
       groups (
         id,
@@ -28,9 +29,13 @@ export default async function DashboardPage() {
     `)
     .eq("user_id", user?.id || "");
 
+  // Calculate total aura
+  const totalAura = members?.reduce((sum, m) => sum + (m.aura_points || 0), 0) || 0;
+
   // Derive groups list from members join
   // Fix: Explicitly type 'm' or validation to avoid 'any' error.
   interface MemberWithGroup {
+    aura_points: number;
     groups: {
       id: string;
       name: string;
@@ -77,7 +82,7 @@ export default async function DashboardPage() {
           <ClayCard className="bg-gradient-to-br from-aura-gold to-orange-400 border-none text-white relative overflow-hidden">
             <div className="relative z-10">
               <p className="font-medium text-white/80 mb-1">Total Aura</p>
-              <h2 className="text-5xl font-black tracking-tight">0</h2>
+              <h2 className="text-5xl font-black tracking-tight">{totalAura}</h2>
             </div>
             <div className="absolute right-[-20px] bottom-[-20px] opacity-20">
               <svg className="w-32 h-32" fill="currentColor" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
