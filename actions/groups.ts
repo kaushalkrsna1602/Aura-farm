@@ -191,15 +191,50 @@ export async function leaveGroupAction(groupId: string) {
   if (!user) return { message: "Unauthorized" };
 
   try {
-    const { error } = await supabase
+    // First, check if user is a member and get their role
+    const { data: currentMember, error: memberError } = await supabase
+      .from("members")
+      .select("role")
+      .eq("group_id", groupId)
+      .eq("user_id", user.id)
+      .single();
+
+    if (memberError || !currentMember) {
+      return { message: "You are not a member of this tribe." };
+    }
+
+    // If user is an admin, check if they are the last admin
+    if (currentMember.role === "admin") {
+      const { count: adminCount } = await supabase
+        .from("members")
+        .select("*", { count: "exact", head: true })
+        .eq("group_id", groupId)
+        .eq("role", "admin");
+
+      if (adminCount !== null && adminCount <= 1) {
+        return {
+          message: "You are the last admin. Please promote another member to admin before leaving, or delete the tribe."
+        };
+      }
+    }
+
+    // Perform the delete with verification
+    const { data: deletedMember, error } = await supabase
       .from("members")
       .delete()
       .eq("group_id", groupId)
-      .eq("user_id", user.id);
+      .eq("user_id", user.id)
+      .select()
+      .single();
 
     if (error) {
       console.error("LEAVE GROUP ERROR:", error);
-      return { message: "Failed to leave group." };
+      return { message: "Failed to leave group. Please try again." };
+    }
+
+    if (!deletedMember) {
+      console.error("LEAVE GROUP: No rows deleted");
+      return { message: "Failed to leave group. Check permissions." };
     }
 
     revalidatePath(`/group/${groupId}`);
@@ -207,6 +242,7 @@ export async function leaveGroupAction(groupId: string) {
     return { success: true };
 
   } catch (e) {
+    console.error("LEAVE GROUP UNEXPECTED ERROR:", e);
     return { message: "Unexpected error" };
   }
 }
