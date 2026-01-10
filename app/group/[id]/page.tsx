@@ -6,7 +6,9 @@ import Link from "next/link";
 import { JoinGroupButton } from "@/components/join-group-button";
 import { ManageGroupDialog } from "@/components/manage-group-dialog";
 import { GiveAuraDialog } from "@/components/give-aura-dialog";
-import { Zap, Settings, ArrowLeft } from "lucide-react";
+import { ManageRewardsDialog } from "@/components/manage-rewards-dialog";
+import { RedeemRewardDialog } from "@/components/redeem-reward-dialog";
+import { Zap, Settings, ArrowLeft, Gift } from "lucide-react";
 
 export default async function GroupPage(props: { params: Promise<{ id: string }> }) {
     const params = await props.params;
@@ -50,6 +52,7 @@ export default async function GroupPage(props: { params: Promise<{ id: string }>
 
     const currentUserMember = members?.find((m) => m.user_id === user?.id);
     const isMember = !!currentUserMember;
+    const isAdmin = currentUserMember?.role === "admin";
 
     if (!isMember) {
         return (
@@ -171,6 +174,25 @@ export default async function GroupPage(props: { params: Promise<{ id: string }>
                                     }
                                 />
                             </div>
+                            {/* Manage Rewards - Admin Only */}
+                            {isAdmin && (
+                                <div className="mt-3">
+                                    <ManageRewardsDialog
+                                        trigger={
+                                            <ClayButton
+                                                variant="outline"
+                                                className="w-full justify-start text-stone-600 hover:text-stone-800"
+                                                leftIcon={<Gift className="w-5 h-5 text-aura-gold-dark" />}
+                                            >
+                                                Manage Rewards
+                                            </ClayButton>
+                                        }
+                                        groupId={group.id}
+                                        rewards={rewards || []}
+                                        isAdmin={isAdmin}
+                                    />
+                                </div>
+                            )}
                         </ClayCard>
 
                         {/* Rewards Shop */}
@@ -178,20 +200,45 @@ export default async function GroupPage(props: { params: Promise<{ id: string }>
                             <h2 className="text-2xl font-bold text-stone-700 mb-4">Rewards Shop</h2>
                             <div className="space-y-4">
                                 {rewards && rewards.length > 0 ? (
-                                    rewards.map(reward => (
-                                        <ClayCard key={reward.id} size="sm" className="relative group overflow-hidden hover:border-aura-gold/30 transition-colors cursor-pointer">
-                                            <div className="flex justify-between items-start">
-                                                <div className="w-10 h-10 rounded-xl bg-stone-100 flex items-center justify-center text-xl shadow-inner">
-                                                    {reward.icon === 'coffee' ? '☕' : '⭐'}
-                                                </div>
-                                                <div className="bg-stone-100 px-3 py-1 rounded-full text-xs font-bold text-stone-600 shadow-sm border border-stone-200">
-                                                    {reward.cost} AP
-                                                </div>
-                                            </div>
-                                            <h4 className="font-bold text-stone-700 mt-3">{reward.title}</h4>
-                                            <p className="text-xs text-stone-400">Redeem instantly</p>
-                                        </ClayCard>
-                                    ))
+                                    rewards.map(reward => {
+                                        const userPoints = currentUserMember?.aura_points || 0;
+                                        const canAfford = userPoints >= reward.cost;
+
+                                        return (
+                                            <RedeemRewardDialog
+                                                key={reward.id}
+                                                reward={reward}
+                                                groupId={group.id}
+                                                userPoints={userPoints}
+                                                trigger={
+                                                    <ClayCard
+                                                        size="sm"
+                                                        className={`relative group overflow-hidden transition-all cursor-pointer ${canAfford
+                                                                ? "hover:border-aura-gold/50 hover:shadow-md"
+                                                                : "opacity-60 hover:opacity-80"
+                                                            }`}
+                                                        interactive
+                                                    >
+                                                        <div className="flex justify-between items-start">
+                                                            <div className="w-10 h-10 rounded-xl bg-stone-100 flex items-center justify-center text-xl shadow-inner">
+                                                                {reward.icon || "⭐"}
+                                                            </div>
+                                                            <div className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm border ${canAfford
+                                                                    ? "bg-aura-gold/10 text-aura-gold-dark border-aura-gold/20"
+                                                                    : "bg-stone-100 text-stone-600 border-stone-200"
+                                                                }`}>
+                                                                {reward.cost} AP
+                                                            </div>
+                                                        </div>
+                                                        <h4 className="font-bold text-stone-700 mt-3">{reward.title}</h4>
+                                                        <p className="text-xs text-stone-400">
+                                                            {canAfford ? "Click to redeem" : `Need ${reward.cost - userPoints} more AP`}
+                                                        </p>
+                                                    </ClayCard>
+                                                }
+                                            />
+                                        );
+                                    })
                                 ) : (
                                     <div className="text-center py-8 text-stone-400 bg-stone-50/50 rounded-3xl border border-stone-200 border-dashed">
                                         <p>No rewards available yet.</p>
