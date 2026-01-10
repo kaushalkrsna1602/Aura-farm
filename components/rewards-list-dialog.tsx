@@ -113,7 +113,7 @@ export function RewardsListDialog({
                 </div>
 
                 {/* Content Area */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide bg-stone-50">
+                <div className="h-[400px] overflow-y-auto p-1 space-y-2 scrollbar-clay bg-stone-50">
                     {!selectedReward ? (
                         // LIST VIEW
                         <div className="grid grid-cols-1 gap-3">
@@ -136,8 +136,8 @@ export function RewardsListDialog({
                                                 <div className="flex justify-between items-start">
                                                     <h4 className="font-bold text-stone-700 truncate pr-2">{reward.title}</h4>
                                                     <span className={`px-2 py-0.5 rounded-full text-xs font-bold whitespace-nowrap ${canAfford
-                                                            ? "bg-aura-gold/10 text-aura-gold-dark"
-                                                            : "bg-stone-200 text-stone-500"
+                                                        ? "bg-aura-gold/10 text-aura-gold-dark"
+                                                        : "bg-stone-200 text-stone-500"
                                                         }`}>
                                                         {reward.cost} AP
                                                     </span>

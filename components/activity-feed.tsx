@@ -47,7 +47,7 @@ export function ActivityFeed({ transactions, currentUserId }: ActivityFeedProps)
                 </h3>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-thin scrollbar-thumb-stone-200 scrollbar-track-transparent">
+            <div className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-clay">
                 {transactions.map((tx) => {
                     const isSystem = !tx.from_profile; // Maybe future use, though currently explicit users
 
