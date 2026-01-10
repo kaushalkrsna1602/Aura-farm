@@ -1,6 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { ClayCard } from "@/components/ui/clay-card";
 import { CreateGroupDialog } from "@/components/create-group-dialog";
+import { JoinTribeDialog } from "@/components/join-tribe-dialog";
 import { SignOutButton } from "@/components/sign-out-button";
 import Link from "next/link";
 
@@ -94,12 +95,16 @@ export default async function DashboardPage() {
             }
           />
 
-          <ClayCard className="text-center flex flex-col items-center justify-center min-h-[160px] border-dashed border-2 border-stone-300 bg-transparent shadow-none hover:bg-stone-50/50 cursor-pointer group transition-colors">
-            <div className="w-12 h-12 rounded-full bg-stone-200 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform text-stone-400">
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
-            </div>
-            <h3 className="font-bold text-stone-500">Join a Tribe</h3>
-          </ClayCard>
+          <JoinTribeDialog
+            trigger={
+              <ClayCard className="text-center flex flex-col items-center justify-center min-h-[160px] border-dashed border-2 border-stone-300 bg-transparent shadow-none hover:bg-stone-50/50 cursor-pointer group transition-colors">
+                <div className="w-12 h-12 rounded-full bg-stone-200 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform text-stone-400">
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+                </div>
+                <h3 className="font-bold text-stone-500">Join a Tribe</h3>
+              </ClayCard>
+            }
+          />
         </div>
 
         <h2 className="text-2xl font-bold text-stone-700 mt-8">Your Tribes</h2>
