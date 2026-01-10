@@ -1,6 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { ClayCard } from "@/components/ui/clay-card";
 import { CreateGroupDialog } from "@/components/create-group-dialog";
+import { JoinTribeDialog } from "@/components/join-tribe-dialog";
 import { SignOutButton } from "@/components/sign-out-button";
 import Link from "next/link";
 
@@ -14,10 +15,11 @@ export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  // Fetch user's groups
+  // Fetch user's groups with aura points
   const { data: members } = await supabase
     .from("members")
     .select(`
+      aura_points,
       group_id,
       groups (
         id,
@@ -27,9 +29,13 @@ export default async function DashboardPage() {
     `)
     .eq("user_id", user?.id || "");
 
+  // Calculate total aura
+  const totalAura = members?.reduce((sum, m) => sum + (m.aura_points || 0), 0) || 0;
+
   // Derive groups list from members join
   // Fix: Explicitly type 'm' or validation to avoid 'any' error.
   interface MemberWithGroup {
+    aura_points: number;
     groups: {
       id: string;
       name: string;
@@ -76,7 +82,7 @@ export default async function DashboardPage() {
           <ClayCard className="bg-gradient-to-br from-aura-gold to-orange-400 border-none text-white relative overflow-hidden">
             <div className="relative z-10">
               <p className="font-medium text-white/80 mb-1">Total Aura</p>
-              <h2 className="text-5xl font-black tracking-tight">0</h2>
+              <h2 className="text-5xl font-black tracking-tight">{totalAura}</h2>
             </div>
             <div className="absolute right-[-20px] bottom-[-20px] opacity-20">
               <svg className="w-32 h-32" fill="currentColor" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
@@ -94,12 +100,16 @@ export default async function DashboardPage() {
             }
           />
 
-          <ClayCard className="text-center flex flex-col items-center justify-center min-h-[160px] border-dashed border-2 border-stone-300 bg-transparent shadow-none hover:bg-stone-50/50 cursor-pointer group transition-colors">
-            <div className="w-12 h-12 rounded-full bg-stone-200 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform text-stone-400">
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
-            </div>
-            <h3 className="font-bold text-stone-500">Join a Tribe</h3>
-          </ClayCard>
+          <JoinTribeDialog
+            trigger={
+              <ClayCard className="text-center flex flex-col items-center justify-center min-h-[160px] border-dashed border-2 border-stone-300 bg-transparent shadow-none hover:bg-stone-50/50 cursor-pointer group transition-colors">
+                <div className="w-12 h-12 rounded-full bg-stone-200 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform text-stone-400">
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+                </div>
+                <h3 className="font-bold text-stone-500">Join a Tribe</h3>
+              </ClayCard>
+            }
+          />
         </div>
 
         <h2 className="text-2xl font-bold text-stone-700 mt-8">Your Tribes</h2>
