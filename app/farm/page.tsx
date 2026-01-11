@@ -116,7 +116,7 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {myGroups.length > 0 ? (
             myGroups.map((group) => (
-              <Link href={`/group/${group.id}`} key={group.id}>
+              <Link href={`/tribe/${group.id}`} key={group.id}>
                 <ClayCard
                   className="h-48 flex flex-col justify-between group relative overflow-hidden clay-hover cursor-pointer bg-stone-50"
                   interactive

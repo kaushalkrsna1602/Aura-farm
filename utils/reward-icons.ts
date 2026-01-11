@@ -43,6 +43,10 @@ const ICON_MAP: Record<string, string> = {
     party: "🎉",
     rocket: "🚀",
     target: "🎯",
+    // Tech / Work
+    laptop: "💻",
+    computer: "🖥️",
+    work: "💼",
 };
 
 /**
@@ -73,11 +77,6 @@ export function getRewardIcon(icon: string | null | undefined): string {
         if (normalizedIcon.includes(key) || key.includes(normalizedIcon)) {
             return emoji;
         }
-    }
-
-    // If it looks like it might be an emoji already, return it
-    if (icon.length <= 10) {
-        return icon;
     }
 
     // Default fallback

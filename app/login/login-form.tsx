@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { ClayButton } from "@/components/ui/clay-button";
+import { useSearchParams } from "next/navigation";
 
 /**
  * LoginForm - Client component for handling Google OAuth
@@ -10,9 +11,12 @@ import { ClayButton } from "@/components/ui/clay-button";
  * This is separated from the page to keep the page as a Server Component
  * while isolating the client-side OAuth logic.
  */
-export function LoginForm() {
+
+function GoogleSignInButton() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next");
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
@@ -21,10 +25,14 @@ export function LoginForm() {
     try {
       const supabase = createClient();
 
+      const redirectTo = next
+        ? `${window.location.origin}/auth/callback?next=${next}`
+        : `${window.location.origin}/auth/callback`;
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo,
           queryParams: {
             access_type: "offline",
             prompt: "consent",
@@ -86,23 +94,14 @@ export function LoginForm() {
       >
         {isLoading ? "Signing in..." : "Continue with Google"}
       </ClayButton>
-
-      {/* Divider */}
-      <div className="relative my-6">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-border" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-card px-4 text-muted-foreground">
-            Secure authentication
-          </span>
-        </div>
-      </div>
-
-      {/* Info text */}
-      <p className="text-center text-sm text-muted-foreground">
-        We&apos;ll never post anything without your permission.
-      </p>
     </div>
+  );
+}
+
+export function LoginForm() {
+  return (
+    <Suspense>
+      <GoogleSignInButton />
+    </Suspense>
   );
 }

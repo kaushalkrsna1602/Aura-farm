@@ -42,7 +42,7 @@ export function ManageGroupDialog({
         setNewName(group.name);
     }, [group.name]);
 
-    const invitePath = `/group/${group.id}`;
+    const invitePath = `/tribe/${group.id}`;
     const inviteUrl = origin ? `${origin}${invitePath}` : invitePath;
 
     const copyToClipboard = () => {
@@ -77,7 +77,7 @@ export function ManageGroupDialog({
             setLoading(false); // Only stop loading if error, otherwise we redirect
         } else {
             toast.success("Left tribe.");
-            router.push("/dashboard");
+            router.push("/farm");
             router.refresh();
         }
     };
@@ -196,7 +196,7 @@ export function ManageGroupDialog({
                                                     setLoading(false);
                                                 } else {
                                                     toast.success("Tribe deleted.");
-                                                    router.push("/dashboard");
+                                                    router.push("/farm");
                                                 }
                                             } else if (confirmation !== null) {
                                                 toast.error("Tribe name did not match. Deletion cancelled.");

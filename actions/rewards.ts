@@ -115,7 +115,7 @@ export async function createRewardAction(
             return { message: "Failed to create reward." };
         }
 
-        revalidatePath(`/group/${groupId}`);
+        revalidatePath(`/tribe/${groupId}`);
         return { success: true };
     } catch (e) {
         console.error("UNEXPECTED ERROR:", e);
@@ -303,7 +303,7 @@ export async function redeemRewardAction(
             return { message: "Failed to deduct points." };
         }
 
-        revalidatePath(`/group/${groupId}`);
+        revalidatePath(`/tribe/${groupId}`);
         return { success: true };
     } catch (e) {
         console.error("REDEMPTION ERROR:", e);

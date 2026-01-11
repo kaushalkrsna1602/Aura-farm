@@ -49,8 +49,8 @@ export function JoinTribeDialog({ trigger }: JoinTribeDialogProps) {
             const trimmedInput = inviteInput.trim();
 
             // Check if it's a full URL (contains /group/)
-            if (trimmedInput.includes("/group/")) {
-                const match = trimmedInput.match(/\/group\/([a-zA-Z0-9-]+)/);
+            if (trimmedInput.includes("/tribe/")) {
+                const match = trimmedInput.match(/\/tribe\/([a-zA-Z0-9-]+)/);
                 if (match) {
                     groupId = match[1];
                 }
@@ -89,7 +89,7 @@ export function JoinTribeDialog({ trigger }: JoinTribeDialogProps) {
                 toast.success("Welcome to the tribe! 🎉");
                 setOpen(false);
                 setInviteInput("");
-                router.push(`/group/${groupId}`);
+                router.push(`/tribe/${groupId}`);
                 router.refresh();
             }
         } catch (error) {

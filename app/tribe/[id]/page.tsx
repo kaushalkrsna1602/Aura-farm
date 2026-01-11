@@ -104,7 +104,7 @@ export default async function GroupPage(props: { params: Promise<{ id: string }>
                         <JoinGroupButton groupId={group.id} />
                     </div>
                 </ClayCard>
-                <Link href="/dashboard" className="text-stone-400 mt-8 hover:text-stone-600 font-medium">
+                <Link href="/farm" className="text-stone-400 mt-8 hover:text-stone-600 font-medium">
                     Back to Dashboard
                 </Link>
             </main>
@@ -119,7 +119,7 @@ export default async function GroupPage(props: { params: Promise<{ id: string }>
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
                         <div className="flex items-center gap-2 mb-2">
-                            <Link href="/dashboard" className="flex items-center gap-1 text-stone-400 hover:text-aura-gold transition-colors font-medium">
+                            <Link href="/farm" className="flex items-center gap-1 text-stone-400 hover:text-aura-gold transition-colors font-medium">
                                 <ArrowLeft className="w-5 h-5" />
                                 <span>Back to Dashboard</span>
                             </Link>
