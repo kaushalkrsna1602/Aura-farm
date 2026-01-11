@@ -51,7 +51,7 @@ export default async function LandingPage() {
 
         {/* CTA Section */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-          <Link href="/dashboard">
+          <Link href="/farm">
             <ClayButton
               size="lg"
               variant="primary"

@@ -6,26 +6,26 @@ import { createClient } from "@/utils/supabase/server";
  *
  * This route handles the OAuth callback from Supabase Auth.
  * It exchanges the authorization code for a session and redirects
- * the user to the dashboard.
+ * the user to the farm.
  *
  * Flow:
  * 1. User clicks "Sign in with Google"
  * 2. Supabase redirects to Google
  * 3. Google redirects back to this callback with a code
  * 4. We exchange the code for a session
- * 5. Redirect to dashboard
+ * 5. Redirect to farm
  */
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/dashboard";
+  const next = searchParams.get("next") ?? "/farm";
 
   if (code) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
-      // Successful authentication - redirect to dashboard
+      // Successful authentication - redirect to farm
       return NextResponse.redirect(`${origin}${next}`);
     }
   }

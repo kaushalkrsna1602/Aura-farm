@@ -84,8 +84,8 @@ export async function createGroupAction(prevState: CreateGroupState | null, form
     return { message: "Unexpected error" };
   }
 
-  revalidatePath("/dashboard");
-  redirect(`/group/${groupId}`);
+  revalidatePath("/farm");
+  redirect(`/tribe/${groupId}`);
 }
 
 export async function joinGroupAction(groupId: string) {
@@ -124,8 +124,8 @@ export async function joinGroupAction(groupId: string) {
       return { message: "Failed to join group." };
     }
 
-    revalidatePath(`/group/${groupId}`);
-    revalidatePath("/dashboard");
+    revalidatePath(`/tribe/${groupId}`);
+    revalidatePath("/farm");
     return { success: true };
 
   } catch (e) {
@@ -168,8 +168,8 @@ export async function updateGroupAction(groupId: string, newName: string) {
       return { message: "Update failed. You may not have permission." };
     }
 
-    revalidatePath(`/group/${groupId}`);
-    revalidatePath("/dashboard");
+    revalidatePath(`/tribe/${groupId}`);
+    revalidatePath("/farm");
     return { success: true };
 
   } catch (e) {
@@ -230,8 +230,8 @@ export async function leaveGroupAction(groupId: string) {
       return { message: "Failed to leave group. Check permissions." };
     }
 
-    revalidatePath(`/group/${groupId}`);
-    revalidatePath("/dashboard");
+    revalidatePath(`/tribe/${groupId}`);
+    revalidatePath("/farm");
     return { success: true };
 
   } catch (e) {
@@ -270,7 +270,7 @@ export async function removeMemberAction(groupId: string, targetUserId: string) 
       return { message: "Failed to remove member." };
     }
 
-    revalidatePath(`/group/${groupId}`);
+    revalidatePath(`/tribe/${groupId}`);
     return { success: true };
 
   } catch (e) {
@@ -313,7 +313,7 @@ export async function deleteGroupAction(groupId: string) {
       return { message: "Failed to delete group. Ensure all members are removed or try again." };
     }
 
-    revalidatePath("/dashboard");
+    revalidatePath("/farm");
     return { success: true };
 
   } catch (e) {

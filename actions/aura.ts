@@ -46,7 +46,7 @@ export async function giveAuraAction(groupId: string, targetUserId: string, amou
             return { message: "Failed to update points. Check database functions." };
         }
 
-        revalidatePath(`/group/${groupId}`);
+        revalidatePath(`/tribe/${groupId}`);
         return { success: true };
 
     } catch (e) {
