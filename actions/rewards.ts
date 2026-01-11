@@ -3,6 +3,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { validateAdmin, validateMember } from "@/utils/validators";
 
 // ============================================================================
 // SCHEMAS
@@ -12,6 +13,7 @@ const rewardSchema = z.object({
     title: z.string().min(1, "Title is required").max(100, "Title too long"),
     cost: z.number().int().positive("Cost must be positive"),
     icon: z.string().max(10).optional(),
+    requires_approval: z.boolean().optional().default(false),
 });
 
 // ============================================================================
@@ -23,51 +25,12 @@ export type RewardFormState = {
         title?: string[];
         cost?: string[];
         icon?: string[];
+        requires_approval?: string[];
         form?: string[];
     };
     message?: string;
     success?: boolean;
 };
-
-// ============================================================================
-// HELPERS
-// ============================================================================
-
-/**
- * Validates that the current user is an admin of the specified group.
- * @returns The user object if admin, null otherwise.
- */
-async function validateAdmin(supabase: Awaited<ReturnType<typeof createClient>>, groupId: string) {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return null;
-
-    const { data: member } = await supabase
-        .from("members")
-        .select("role")
-        .eq("group_id", groupId)
-        .eq("user_id", user.id)
-        .single();
-
-    return member?.role === "admin" ? user : null;
-}
-
-/**
- * Validates that the current user is a member of the specified group.
- * @returns The member record if found, null otherwise.
- */
-async function validateMember(supabase: Awaited<ReturnType<typeof createClient>>, groupId: string) {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return null;
-
-    const { data: member } = await supabase
-        .from("members")
-        .select("*")
-        .eq("group_id", groupId)
-        .eq("user_id", user.id)
-        .single();
-
-    return member;
-}
 
 // ============================================================================
 // SERVER ACTIONS
@@ -79,7 +42,7 @@ async function validateMember(supabase: Awaited<ReturnType<typeof createClient>>
  */
 export async function createRewardAction(
     groupId: string,
-    formData: { title: string; cost: number; icon?: string }
+    formData: { title: string; cost: number; icon?: string; requires_approval?: boolean }
 ): Promise<RewardFormState> {
     const supabase = await createClient();
 
@@ -98,7 +61,7 @@ export async function createRewardAction(
         };
     }
 
-    const { title, cost, icon } = validated.data;
+    const { title, cost, icon, requires_approval } = validated.data;
 
     try {
         const { error } = await supabase
@@ -108,6 +71,7 @@ export async function createRewardAction(
                 title,
                 cost,
                 icon: icon || "⭐",
+                requires_approval: requires_approval || false,
             });
 
         if (error) {
@@ -129,7 +93,7 @@ export async function createRewardAction(
  */
 export async function updateRewardAction(
     rewardId: string,
-    formData: { title: string; cost: number; icon?: string }
+    formData: { title: string; cost: number; icon?: string; requires_approval?: boolean }
 ): Promise<RewardFormState> {
     const supabase = await createClient();
 
@@ -160,13 +124,13 @@ export async function updateRewardAction(
         };
     }
 
-    const { title, cost, icon } = validated.data;
+    const { title, cost, icon, requires_approval } = validated.data;
 
     try {
         // Add .select() to verify the update actually happened
         const { data: updatedReward, error } = await supabase
             .from("rewards")
-            .update({ title, cost, icon })
+            .update({ title, cost, icon, requires_approval: requires_approval || false })
             .eq("id", rewardId)
             .select()
             .single();
@@ -274,6 +238,44 @@ export async function redeemRewardAction(
     }
 
     try {
+        // Check if reward requires approval
+        if (reward.requires_approval) {
+            // Check if user already has a pending request for this reward
+            const { data: existingPending } = await supabase
+                .from("reward_redemptions")
+                .select("id")
+                .eq("reward_id", rewardId)
+                .eq("user_id", user.id)
+                .eq("status", "pending")
+                .single();
+
+            if (existingPending) {
+                return {
+                    message: "You already have a pending request for this reward. Please wait for admin approval."
+                };
+            }
+
+            // Create pending redemption request (don't deduct points yet)
+            const { error: redemptionError } = await supabase
+                .from("reward_redemptions")
+                .insert({
+                    reward_id: rewardId,
+                    group_id: groupId,
+                    user_id: user.id,
+                    status: "pending",
+                    points_deducted: reward.cost,
+                });
+
+            if (redemptionError) {
+                console.error("REDEMPTION REQUEST ERROR:", redemptionError);
+                return { message: "Failed to submit redemption request." };
+            }
+
+            revalidatePath(`/tribe/${groupId}`);
+            return { success: true, message: "Redemption request submitted. Awaiting admin approval." };
+        }
+
+        // Instant redemption (no approval required)
         // 1. Create redemption transaction (negative amount, to_id is null for redemptions)
         const { error: transactionError } = await supabase
             .from("transactions")

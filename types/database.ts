@@ -181,6 +181,7 @@ export interface Database {
           title: string;
           cost: number;
           icon: string | null;
+          requires_approval: boolean;
           created_at: string;
         };
         Insert: {
@@ -189,6 +190,7 @@ export interface Database {
           title: string;
           cost: number;
           icon?: string | null;
+          requires_approval?: boolean;
           created_at?: string;
         };
         Update: {
@@ -197,6 +199,7 @@ export interface Database {
           title?: string;
           cost?: number;
           icon?: string | null;
+          requires_approval?: boolean;
           created_at?: string;
         };
         Relationships: [
@@ -205,6 +208,74 @@ export interface Database {
             columns: ["group_id"];
             isOneToOne: false;
             referencedRelation: "groups";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      reward_redemptions: {
+        Row: {
+          id: string;
+          reward_id: string;
+          group_id: string;
+          user_id: string;
+          status: "pending" | "approved" | "rejected";
+          points_deducted: number;
+          approved_by: string | null;
+          admin_notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          reward_id: string;
+          group_id: string;
+          user_id: string;
+          status?: "pending" | "approved" | "rejected";
+          points_deducted: number;
+          approved_by?: string | null;
+          admin_notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          reward_id?: string;
+          group_id?: string;
+          user_id?: string;
+          status?: "pending" | "approved" | "rejected";
+          points_deducted?: number;
+          approved_by?: string | null;
+          admin_notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "reward_redemptions_reward_id_fkey";
+            columns: ["reward_id"];
+            isOneToOne: false;
+            referencedRelation: "rewards";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "reward_redemptions_group_id_fkey";
+            columns: ["group_id"];
+            isOneToOne: false;
+            referencedRelation: "groups";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "reward_redemptions_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "reward_redemptions_approved_by_fkey";
+            columns: ["approved_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           }
         ];
@@ -241,6 +312,7 @@ export type Group = Tables<"groups">;
 export type Member = Tables<"members">;
 export type Transaction = Tables<"transactions">;
 export type Reward = Tables<"rewards">;
+export type RewardRedemption = Tables<"reward_redemptions">;
 
 // Member with profile for leaderboard
 export type MemberWithProfile = Member & {

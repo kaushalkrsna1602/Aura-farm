@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { ClayCard } from "@/components/ui/clay-card";
 import { formatDistanceToNow } from "date-fns";
 import { Zap } from "lucide-react";
@@ -21,6 +22,28 @@ interface Transaction {
 interface ActivityFeedProps {
     transactions: Transaction[];
     currentUserId?: string;
+}
+
+// Separate component for time to avoid hydration mismatch
+function RelativeTime({ date }: { date: string }) {
+    const [timeAgo, setTimeAgo] = useState<string>("");
+
+    useEffect(() => {
+        // Only calculate on client
+        setTimeAgo(formatDistanceToNow(new Date(date), { addSuffix: true }));
+
+        // Update every minute
+        const interval = setInterval(() => {
+            setTimeAgo(formatDistanceToNow(new Date(date), { addSuffix: true }));
+        }, 60000);
+
+        return () => clearInterval(interval);
+    }, [date]);
+
+    // Show nothing during SSR, show time after hydration
+    if (!timeAgo) return null;
+
+    return <span>{timeAgo}</span>;
 }
 
 export function ActivityFeed({ transactions, currentUserId }: ActivityFeedProps) {
@@ -49,8 +72,6 @@ export function ActivityFeed({ transactions, currentUserId }: ActivityFeedProps)
 
             <div className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-clay">
                 {transactions.map((tx) => {
-                    const isSystem = !tx.from_profile; // Maybe future use, though currently explicit users
-
                     return (
                         <div key={tx.id} className="flex gap-3 group animate-in slide-in-from-bottom-2 duration-500">
                             {/* Avatar */}
@@ -88,7 +109,7 @@ export function ActivityFeed({ transactions, currentUserId }: ActivityFeedProps)
                                 </div>
 
                                 <span className="text-[10px] text-stone-400 mt-1 pl-1 block">
-                                    {formatDistanceToNow(new Date(tx.created_at), { addSuffix: true })}
+                                    <RelativeTime date={tx.created_at} />
                                 </span>
                             </div>
                         </div>
@@ -98,3 +119,4 @@ export function ActivityFeed({ transactions, currentUserId }: ActivityFeedProps)
         </ClayCard>
     );
 }
+

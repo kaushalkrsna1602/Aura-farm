@@ -7,6 +7,8 @@ import { JoinGroupButton } from "@/components/join-group-button";
 import { ManageGroupDialog } from "@/components/manage-group-dialog";
 import { ManageRewardsDialog } from "@/components/manage-rewards-dialog";
 import { RewardsListDialog } from "@/components/rewards-list-dialog";
+import { PendingApprovalsCard } from "@/components/pending-approvals-card";
+import { MyRedemptionsCard } from "@/components/my-redemptions-card";
 import { Settings, ArrowLeft, Gift } from "lucide-react";
 import { GiveAuraToUserDialog } from "@/components/give-aura-to-user-dialog";
 import { ActivityFeed } from "@/components/activity-feed";
@@ -85,6 +87,17 @@ export default async function GroupPage(props: { params: Promise<{ id: string }>
         to_profile: Array.isArray(tx.to_profile) ? tx.to_profile[0] : tx.to_profile,
     })) || [];
 
+    // 5. Fetch pending redemptions count (for admins only)
+    let pendingRedemptionsCount = 0;
+    if (isAdmin) {
+        const { count } = await supabase
+            .from("reward_redemptions")
+            .select("*", { count: "exact", head: true })
+            .eq("group_id", group.id)
+            .eq("status", "pending");
+        pendingRedemptionsCount = count || 0;
+    }
+
 
     if (!isMember) {
         return (
@@ -96,7 +109,7 @@ export default async function GroupPage(props: { params: Promise<{ id: string }>
                     <div>
                         <h1 className="text-3xl font-black text-stone-800">{group.name}</h1>
                         <p className="text-stone-500 mt-2">
-                            This tribe has <strong>{members?.length || 0}</strong> master farmers. <br />
+                            This tribe has <strong>{members?.length || 0}</strong> farmers. <br />
                             Join them to start farming Aura.
                         </p>
                     </div>
@@ -168,7 +181,7 @@ export default async function GroupPage(props: { params: Promise<{ id: string }>
                                                 <span className="truncate">{member.profiles?.full_name}</span>
                                                 {member.role === 'admin' && <span className="shrink-0 text-[10px] bg-stone-200 text-stone-500 px-1.5 py-0.5 rounded font-bold uppercase hidden sm:inline-block">Admin</span>}
                                             </p>
-                                            <p className="text-xs text-stone-400 truncate">Master Farmer</p>
+                                            <p className="text-xs text-stone-400 truncate">{idx < 3 ? "Master Farmer" : "Farmer"}</p>
                                         </div>
                                     </div>
                                     <div className="text-right flex items-center gap-2 md:gap-4 shrink-0 pl-2">
@@ -234,6 +247,17 @@ export default async function GroupPage(props: { params: Promise<{ id: string }>
                                 </div>
                             )}
                         </ClayCard>
+
+                        {/* Pending Approvals - Admin Only */}
+                        {isAdmin && (
+                            <PendingApprovalsCard
+                                groupId={group.id}
+                                initialPendingCount={pendingRedemptionsCount}
+                            />
+                        )}
+
+                        {/* My Redemptions - For all members */}
+                        <MyRedemptionsCard groupId={group.id} />
 
                         {/* Activity Feed */}
                         <div>
