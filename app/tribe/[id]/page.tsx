@@ -8,6 +8,7 @@ import { ManageGroupDialog } from "@/components/manage-group-dialog";
 import { ManageRewardsDialog } from "@/components/manage-rewards-dialog";
 import { RewardsListDialog } from "@/components/rewards-list-dialog";
 import { PendingApprovalsCard } from "@/components/pending-approvals-card";
+import { MyRedemptionsCard } from "@/components/my-redemptions-card";
 import { Settings, ArrowLeft, Gift } from "lucide-react";
 import { GiveAuraToUserDialog } from "@/components/give-aura-to-user-dialog";
 import { ActivityFeed } from "@/components/activity-feed";
@@ -254,6 +255,9 @@ export default async function GroupPage(props: { params: Promise<{ id: string }>
                                 initialPendingCount={pendingRedemptionsCount}
                             />
                         )}
+
+                        {/* My Redemptions - For all members */}
+                        <MyRedemptionsCard groupId={group.id} />
 
                         {/* Activity Feed */}
                         <div>
