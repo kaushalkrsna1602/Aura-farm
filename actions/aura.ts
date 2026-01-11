@@ -11,6 +11,23 @@ export async function giveAuraAction(groupId: string, targetUserId: string, amou
         return { message: "You must be logged in." };
     }
 
+    // Validate amount (defense in depth - UI should also validate)
+    if (amount < 1 || amount > 100) {
+        return { message: "Amount must be between 1 and 100." };
+    }
+
+    // Validate sender is a member of the group (defense in depth - RLS also protects)
+    const { data: member } = await supabase
+        .from("members")
+        .select("user_id")
+        .eq("group_id", groupId)
+        .eq("user_id", user.id)
+        .single();
+
+    if (!member) {
+        return { message: "You must be a member of this tribe to give aura." };
+    }
+
     try {
         // 1. Create Transaction
         const { error: transactionError } = await supabase
@@ -28,7 +45,7 @@ export async function giveAuraAction(groupId: string, targetUserId: string, amou
             return { message: "Failed to give aura." };
         }
 
-        // 2. Atomic Update via RPC
+        // 2. Atomic Update via RPC (points are generated, not deducted from sender)
         // @ts-ignore
         const { error: rpcError } = await supabase.rpc('increment_aura', {
             p_group_id: groupId,
@@ -38,11 +55,6 @@ export async function giveAuraAction(groupId: string, targetUserId: string, amou
 
         if (rpcError) {
             console.error("RPC ERROR:", rpcError);
-            // Fallback to manual update if RPC fails (e.g. function not created yet)
-            // But for now, let's treat it as critical failure or try manual as backup?
-            // Sticking to "Production Candidate" means we expect RPC to work.
-            // But to be safe during dev transitions, maybe fetch/update fallback is nice, 
-            // BUT the user specifically asked to use RPC. So I will return error.
             return { message: "Failed to update points. Check database functions." };
         }
 
@@ -54,3 +66,4 @@ export async function giveAuraAction(groupId: string, targetUserId: string, amou
         return { message: "Unexpected error" };
     }
 }
+

@@ -2,6 +2,7 @@
 
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
+import { validateAdmin } from "@/utils/validators";
 
 // ============================================================================
 // TYPES
@@ -36,27 +37,6 @@ export type RedemptionWithDetails = {
         avatar_url: string | null;
     };
 };
-
-// ============================================================================
-// HELPERS
-// ============================================================================
-
-/**
- * Validates that the current user is an admin of the specified group.
- */
-async function validateAdmin(supabase: Awaited<ReturnType<typeof createClient>>, groupId: string) {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return null;
-
-    const { data: member } = await supabase
-        .from("members")
-        .select("role")
-        .eq("group_id", groupId)
-        .eq("user_id", user.id)
-        .single();
-
-    return member?.role === "admin" ? user : null;
-}
 
 // ============================================================================
 // SERVER ACTIONS
