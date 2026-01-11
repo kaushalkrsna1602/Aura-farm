@@ -55,8 +55,13 @@ export function RedeemRewardDialog({
             const { redeemRewardAction } = await import("@/actions/rewards");
             const res = await redeemRewardAction(groupId, reward.id);
 
-            if (res.message) {
+            if (res.message && !res.success) {
                 toast.error(res.message);
+            } else if (res.success && res.message) {
+                // Approval-required reward
+                toast.success(res.message, { duration: 5000 });
+                setOpen(false);
+                router.refresh();
             } else {
                 toast.success(`Successfully redeemed "${reward.title}"! 🎉`);
                 setOpen(false);
@@ -127,6 +132,14 @@ export function RedeemRewardDialog({
 
                     {/* Action Buttons */}
                     <div className="space-y-2">
+                        {reward.requires_approval && canAfford && (
+                            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-2">
+                                <p className="text-xs text-amber-700">
+                                    <strong>🔒 Approval Required:</strong> This reward needs admin approval.
+                                    Your points will only be deducted once approved.
+                                </p>
+                            </div>
+                        )}
                         <ClayButton
                             variant={canAfford ? "primary" : "secondary"}
                             className="w-full h-12 text-base"
@@ -134,7 +147,12 @@ export function RedeemRewardDialog({
                             disabled={!canAfford}
                             isLoading={loading}
                         >
-                            {canAfford ? "Confirm Redemption" : "Not Enough Points"}
+                            {!canAfford
+                                ? "Not Enough Points"
+                                : reward.requires_approval
+                                    ? "Request Approval"
+                                    : "Confirm Redemption"
+                            }
                         </ClayButton>
                         <ClayButton
                             variant="ghost"

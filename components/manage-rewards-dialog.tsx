@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { getRewardIcon } from "@/utils/reward-icons";
 import type { Reward } from "@/types/database";
@@ -38,6 +39,7 @@ interface RewardFormData {
     title: string;
     cost: string;
     icon: string;
+    requires_approval: boolean;
 }
 
 // ============================================================================
@@ -57,6 +59,7 @@ export function ManageRewardsDialog({
         title: "",
         cost: "",
         icon: "⭐",
+        requires_approval: false,
     });
 
     const router = useRouter();
@@ -65,7 +68,7 @@ export function ManageRewardsDialog({
     if (!isAdmin) return null;
 
     const resetForm = () => {
-        setFormData({ title: "", cost: "", icon: "⭐" });
+        setFormData({ title: "", cost: "", icon: "⭐", requires_approval: false });
         setEditingId(null);
     };
 
@@ -92,6 +95,7 @@ export function ManageRewardsDialog({
                     title: formData.title,
                     cost: costNum,
                     icon: formData.icon,
+                    requires_approval: formData.requires_approval,
                 });
 
                 if (res.message) {
@@ -108,6 +112,7 @@ export function ManageRewardsDialog({
                     title: formData.title,
                     cost: costNum,
                     icon: formData.icon,
+                    requires_approval: formData.requires_approval,
                 });
 
                 if (res.message) {
@@ -131,6 +136,7 @@ export function ManageRewardsDialog({
             title: reward.title,
             cost: reward.cost.toString(),
             icon: reward.icon || "⭐",
+            requires_approval: reward.requires_approval || false,
         });
     };
 
@@ -223,6 +229,22 @@ export function ManageRewardsDialog({
                         </div>
                     </div>
 
+                    {/* Requires Approval Toggle */}
+                    <div className="flex items-center justify-between p-4 bg-amber-50/50 rounded-xl border border-amber-200/50">
+                        <div className="space-y-0.5">
+                            <Label className="text-stone-700 font-bold">Requires Approval</Label>
+                            <p className="text-xs text-stone-500">
+                                Admin must approve before points are deducted
+                            </p>
+                        </div>
+                        <Switch
+                            checked={formData.requires_approval}
+                            onCheckedChange={(checked) =>
+                                setFormData({ ...formData, requires_approval: checked })
+                            }
+                        />
+                    </div>
+
                     {/* Submit Button */}
                     <div className="flex gap-2 pt-2">
                         <ClayButton
@@ -268,8 +290,13 @@ export function ManageRewardsDialog({
                                             <p className="font-semibold text-stone-700">
                                                 {reward.title}
                                             </p>
-                                            <p className="text-xs text-stone-400">
+                                            <p className="text-xs text-stone-400 flex items-center gap-1">
                                                 {reward.cost} AP
+                                                {reward.requires_approval && (
+                                                    <span className="ml-1 px-1.5 py-0.5 text-[10px] bg-amber-100 text-amber-700 rounded-full font-medium">
+                                                        Approval
+                                                    </span>
+                                                )}
                                             </p>
                                         </div>
                                     </div>

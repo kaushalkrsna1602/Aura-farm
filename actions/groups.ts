@@ -88,6 +88,112 @@ export async function createGroupAction(prevState: CreateGroupState | null, form
   redirect(`/tribe/${groupId}`);
 }
 
+// ============================================================================
+// CREATE GROUP WITH REWARDS
+// ============================================================================
+
+type RewardTemplate = {
+  id: string;
+  title: string;
+  cost: number;
+  icon: string;
+  requires_approval: boolean;
+};
+
+type CreateGroupWithRewardsResult = {
+  groupId?: string;
+  error?: string;
+};
+
+/**
+ * Creates a new group with optional preset rewards.
+ * Used by the multi-step create group dialog.
+ */
+export async function createGroupWithRewardsAction(
+  name: string,
+  rewards: RewardTemplate[]
+): Promise<CreateGroupWithRewardsResult> {
+  const supabase = await createClient();
+
+  // 1. Auth Check
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return { error: "You must be logged in to create a group." };
+  }
+
+  // 2. Validate Name
+  const validatedFields = createGroupSchema.safeParse({ name });
+  if (!validatedFields.success) {
+    const errors = validatedFields.error.flatten().fieldErrors;
+    return { error: errors.name?.[0] || "Invalid name." };
+  }
+
+  const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+  try {
+    // 3. Insert Group
+    const { data: group, error: groupError } = await supabase
+      .from("groups")
+      .insert({
+        name: validatedFields.data.name,
+        is_public: false,
+        invite_code: inviteCode,
+        created_by: user.id,
+      })
+      .select()
+      .single();
+
+    if (groupError || !group) {
+      console.error("GROUPS INSERT ERROR:", groupError);
+      return { error: "Failed to create group." };
+    }
+
+    // 4. Insert Member as Admin
+    const { error: memberError } = await supabase
+      .from("members")
+      .insert({
+        group_id: group.id,
+        user_id: user.id,
+        role: "admin",
+        aura_points: 0,
+      });
+
+    if (memberError) {
+      console.error("MEMBERS INSERT ERROR:", memberError);
+      // Cleanup: delete the group we just created
+      await supabase.from("groups").delete().eq("id", group.id);
+      return { error: "Failed to join group." };
+    }
+
+    // 5. Insert Rewards (if any selected)
+    if (rewards.length > 0) {
+      const rewardsToInsert = rewards.map((r) => ({
+        group_id: group.id,
+        title: r.title,
+        cost: r.cost,
+        icon: r.icon,
+        requires_approval: r.requires_approval,
+      }));
+
+      const { error: rewardsError } = await supabase
+        .from("rewards")
+        .insert(rewardsToInsert);
+
+      if (rewardsError) {
+        console.error("REWARDS INSERT ERROR:", rewardsError);
+        // Non-critical - group is still created, just log and continue
+      }
+    }
+
+    revalidatePath("/farm");
+    return { groupId: group.id };
+
+  } catch (e) {
+    console.error("UNEXPECTED ERROR:", e);
+    return { error: "Unexpected error occurred." };
+  }
+}
+
 export async function joinGroupAction(groupId: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

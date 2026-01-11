@@ -7,6 +7,7 @@ import { JoinGroupButton } from "@/components/join-group-button";
 import { ManageGroupDialog } from "@/components/manage-group-dialog";
 import { ManageRewardsDialog } from "@/components/manage-rewards-dialog";
 import { RewardsListDialog } from "@/components/rewards-list-dialog";
+import { PendingApprovalsCard } from "@/components/pending-approvals-card";
 import { Settings, ArrowLeft, Gift } from "lucide-react";
 import { GiveAuraToUserDialog } from "@/components/give-aura-to-user-dialog";
 import { ActivityFeed } from "@/components/activity-feed";
@@ -84,6 +85,17 @@ export default async function GroupPage(props: { params: Promise<{ id: string }>
         // Supabase types sometimes return array or single object depending on relationship setup
         to_profile: Array.isArray(tx.to_profile) ? tx.to_profile[0] : tx.to_profile,
     })) || [];
+
+    // 5. Fetch pending redemptions count (for admins only)
+    let pendingRedemptionsCount = 0;
+    if (isAdmin) {
+        const { count } = await supabase
+            .from("reward_redemptions")
+            .select("*", { count: "exact", head: true })
+            .eq("group_id", group.id)
+            .eq("status", "pending");
+        pendingRedemptionsCount = count || 0;
+    }
 
 
     if (!isMember) {
@@ -234,6 +246,14 @@ export default async function GroupPage(props: { params: Promise<{ id: string }>
                                 </div>
                             )}
                         </ClayCard>
+
+                        {/* Pending Approvals - Admin Only */}
+                        {isAdmin && (
+                            <PendingApprovalsCard
+                                groupId={group.id}
+                                initialPendingCount={pendingRedemptionsCount}
+                            />
+                        )}
 
                         {/* Activity Feed */}
                         <div>

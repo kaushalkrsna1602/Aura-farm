@@ -12,6 +12,7 @@ const rewardSchema = z.object({
     title: z.string().min(1, "Title is required").max(100, "Title too long"),
     cost: z.number().int().positive("Cost must be positive"),
     icon: z.string().max(10).optional(),
+    requires_approval: z.boolean().optional().default(false),
 });
 
 // ============================================================================
@@ -23,6 +24,7 @@ export type RewardFormState = {
         title?: string[];
         cost?: string[];
         icon?: string[];
+        requires_approval?: string[];
         form?: string[];
     };
     message?: string;
@@ -79,7 +81,7 @@ async function validateMember(supabase: Awaited<ReturnType<typeof createClient>>
  */
 export async function createRewardAction(
     groupId: string,
-    formData: { title: string; cost: number; icon?: string }
+    formData: { title: string; cost: number; icon?: string; requires_approval?: boolean }
 ): Promise<RewardFormState> {
     const supabase = await createClient();
 
@@ -98,7 +100,7 @@ export async function createRewardAction(
         };
     }
 
-    const { title, cost, icon } = validated.data;
+    const { title, cost, icon, requires_approval } = validated.data;
 
     try {
         const { error } = await supabase
@@ -108,6 +110,7 @@ export async function createRewardAction(
                 title,
                 cost,
                 icon: icon || "⭐",
+                requires_approval: requires_approval || false,
             });
 
         if (error) {
@@ -129,7 +132,7 @@ export async function createRewardAction(
  */
 export async function updateRewardAction(
     rewardId: string,
-    formData: { title: string; cost: number; icon?: string }
+    formData: { title: string; cost: number; icon?: string; requires_approval?: boolean }
 ): Promise<RewardFormState> {
     const supabase = await createClient();
 
@@ -160,13 +163,13 @@ export async function updateRewardAction(
         };
     }
 
-    const { title, cost, icon } = validated.data;
+    const { title, cost, icon, requires_approval } = validated.data;
 
     try {
         // Add .select() to verify the update actually happened
         const { data: updatedReward, error } = await supabase
             .from("rewards")
-            .update({ title, cost, icon })
+            .update({ title, cost, icon, requires_approval: requires_approval || false })
             .eq("id", rewardId)
             .select()
             .single();
@@ -274,6 +277,29 @@ export async function redeemRewardAction(
     }
 
     try {
+        // Check if reward requires approval
+        if (reward.requires_approval) {
+            // Create pending redemption request (don't deduct points yet)
+            const { error: redemptionError } = await supabase
+                .from("reward_redemptions")
+                .insert({
+                    reward_id: rewardId,
+                    group_id: groupId,
+                    user_id: user.id,
+                    status: "pending",
+                    points_deducted: reward.cost,
+                });
+
+            if (redemptionError) {
+                console.error("REDEMPTION REQUEST ERROR:", redemptionError);
+                return { message: "Failed to submit redemption request." };
+            }
+
+            revalidatePath(`/tribe/${groupId}`);
+            return { success: true, message: "Redemption request submitted. Awaiting admin approval." };
+        }
+
+        // Instant redemption (no approval required)
         // 1. Create redemption transaction (negative amount, to_id is null for redemptions)
         const { error: transactionError } = await supabase
             .from("transactions")
