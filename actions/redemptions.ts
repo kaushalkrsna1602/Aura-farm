@@ -307,3 +307,81 @@ export async function getUserRedemptionsAction(
         return { data: null, error: "Unexpected error occurred." };
     }
 }
+
+// ============================================================================
+// ALERT TYPE
+// ============================================================================
+
+type RedemptionAlert = {
+    id: string;
+    status: "approved" | "rejected";
+    reward_title: string;
+    reward_icon: string | null;
+    points: number;
+    admin_notes: string | null;
+    updated_at: string;
+};
+
+/**
+ * Gets recent redemption status changes (approved/rejected within last 24 hours)
+ * for showing toast notifications to users.
+ */
+export async function getRecentRedemptionAlertsAction(
+    groupId: string
+): Promise<{ data: RedemptionAlert[] | null; error?: string }> {
+    const supabase = await createClient();
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+        return { data: null, error: "Not authenticated." };
+    }
+
+    try {
+        // Get redemptions updated in last 24 hours that are approved or rejected
+        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+        const { data, error } = await supabase
+            .from("reward_redemptions")
+            .select(`
+                id,
+                status,
+                points_deducted,
+                admin_notes,
+                updated_at,
+                reward:reward_id (
+                    title,
+                    icon
+                )
+            `)
+            .eq("group_id", groupId)
+            .eq("user_id", user.id)
+            .in("status", ["approved", "rejected"])
+            .gte("updated_at", twentyFourHoursAgo)
+            .order("updated_at", { ascending: false })
+            .limit(5);
+
+        if (error) {
+            console.error("GET REDEMPTION ALERTS ERROR:", error);
+            return { data: null, error: "Failed to fetch alerts." };
+        }
+
+        const alerts: RedemptionAlert[] = (data || []).map((item) => {
+            const reward = Array.isArray(item.reward) ? item.reward[0] : item.reward;
+            return {
+                id: item.id,
+                status: item.status as "approved" | "rejected",
+                reward_title: reward?.title || "Unknown Reward",
+                reward_icon: reward?.icon || null,
+                points: item.points_deducted,
+                admin_notes: item.admin_notes,
+                updated_at: item.updated_at,
+            };
+        });
+
+        return { data: alerts };
+    } catch (e) {
+        console.error("UNEXPECTED ERROR:", e);
+        return { data: null, error: "Unexpected error occurred." };
+    }
+}
+

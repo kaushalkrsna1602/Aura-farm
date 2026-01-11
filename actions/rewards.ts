@@ -279,6 +279,21 @@ export async function redeemRewardAction(
     try {
         // Check if reward requires approval
         if (reward.requires_approval) {
+            // Check if user already has a pending request for this reward
+            const { data: existingPending } = await supabase
+                .from("reward_redemptions")
+                .select("id")
+                .eq("reward_id", rewardId)
+                .eq("user_id", user.id)
+                .eq("status", "pending")
+                .single();
+
+            if (existingPending) {
+                return {
+                    message: "You already have a pending request for this reward. Please wait for admin approval."
+                };
+            }
+
             // Create pending redemption request (don't deduct points yet)
             const { error: redemptionError } = await supabase
                 .from("reward_redemptions")

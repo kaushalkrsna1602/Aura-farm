@@ -23,7 +23,6 @@ export function MyRedemptionsCard({ groupId }: MyRedemptionsCardProps) {
     const [expanded, setExpanded] = useState(false);
     const [loading, setLoading] = useState(false);
     const [redemptions, setRedemptions] = useState<RedemptionWithDetails[]>([]);
-    const [hasNewUpdates, setHasNewUpdates] = useState(false);
 
     // Fetch redemptions when expanded
     useEffect(() => {
@@ -39,15 +38,6 @@ export function MyRedemptionsCard({ groupId }: MyRedemptionsCardProps) {
             const result = await getUserRedemptionsAction(groupId);
             if (result.data) {
                 setRedemptions(result.data);
-                // Check for any recently approved/rejected (within last 24 hours)
-                const recentUpdates = result.data.filter((r) => {
-                    if (r.status === "pending") return false;
-                    const updatedAt = new Date(r.updated_at);
-                    const now = new Date();
-                    const hoursDiff = (now.getTime() - updatedAt.getTime()) / (1000 * 60 * 60);
-                    return hoursDiff < 24;
-                });
-                setHasNewUpdates(recentUpdates.length > 0);
             }
         } catch {
             console.error("Failed to fetch redemptions");
@@ -117,11 +107,6 @@ export function MyRedemptionsCard({ groupId }: MyRedemptionsCardProps) {
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    {hasNewUpdates && !expanded && (
-                        <span className="px-2 py-1 bg-green-500 text-white text-[10px] font-bold rounded-full animate-pulse">
-                            NEW
-                        </span>
-                    )}
                     {expanded ? (
                         <ChevronUp className="w-5 h-5 text-stone-400" />
                     ) : (
@@ -146,10 +131,10 @@ export function MyRedemptionsCard({ groupId }: MyRedemptionsCardProps) {
                             <div
                                 key={redemption.id}
                                 className={`rounded-xl p-3 border ${redemption.status === "approved"
-                                        ? "bg-green-50/50 border-green-100"
-                                        : redemption.status === "rejected"
-                                            ? "bg-red-50/50 border-red-100"
-                                            : "bg-white border-stone-200"
+                                    ? "bg-green-50/50 border-green-100"
+                                    : redemption.status === "rejected"
+                                        ? "bg-red-50/50 border-red-100"
+                                        : "bg-white border-stone-200"
                                     }`}
                             >
                                 <div className="flex items-center justify-between gap-3">

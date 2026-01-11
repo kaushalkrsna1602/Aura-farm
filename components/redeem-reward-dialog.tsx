@@ -58,8 +58,19 @@ export function RedeemRewardDialog({
             if (res.message && !res.success) {
                 toast.error(res.message);
             } else if (res.success && res.message) {
-                // Approval-required reward
-                toast.success(res.message, { duration: 5000 });
+                // Approval-required reward - use custom styled toast
+                toast(
+                    <div className="flex items-center gap-3">
+                        <span className="text-2xl">⏳</span>
+                        <div>
+                            <p className="font-semibold text-stone-800">Request Submitted!</p>
+                            <p className="text-sm text-stone-500">
+                                Waiting for admin approval
+                            </p>
+                        </div>
+                    </div>,
+                    { duration: 5000 }
+                );
                 setOpen(false);
                 router.refresh();
             } else {
