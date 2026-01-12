@@ -2,23 +2,25 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 /**
- * Supabase Middleware Session Handler
- *
- * Responsibilities (Single Responsibility Principle):
- * 1. Refresh expired sessions using cookies
- * 2. Protect authenticated routes
- * 3. Redirect authenticated users from public pages
- *
- * This middleware does NOT handle OAuth code exchange.
- * That is the responsibility of /auth/callback/route.ts
+ * Updates the Supabase session in middleware.
+ * 
+ * This function:
+ * 1. Reads the session from cookies
+ * 2. Refreshes the session if it's expired
+ * 3. Sets updated cookies in the response
+ * 
+ * This should be called from your Next.js middleware for all
+ * routes that need authentication.
  */
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request });
+  // Create a response to modify cookies
+  let supabaseResponse = NextResponse.next({
+    request,
+  });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY! ||
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY! || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!,
     {
       cookies: {
         getAll() {
@@ -28,7 +30,9 @@ export async function updateSession(request: NextRequest) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
-          supabaseResponse = NextResponse.next({ request });
+          supabaseResponse = NextResponse.next({
+            request,
+          });
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
           );
@@ -37,7 +41,10 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // Refresh session - this is the core purpose of this middleware
+  // IMPORTANT: Do not add any logic between createServerClient and
+  // supabase.auth.getUser(). A simple mistake could make your app
+  // vulnerable to attacks.
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -58,7 +65,7 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Redirect authenticated users away from login/landing to /farm
+  // Redirect authenticated users away from login page and landing page
   if (user && (request.nextUrl.pathname === "/login" || request.nextUrl.pathname === "/")) {
     const url = request.nextUrl.clone();
     url.pathname = "/farm";
