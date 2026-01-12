@@ -1,8 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "sonner";
-import { AuthCodeHandler } from "@/components/auth-code-handler";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -69,10 +67,6 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-background font-sans antialiased`}
       >
-        {/* Handle OAuth code exchange for PKCE flow */}
-        <Suspense fallback={null}>
-          <AuthCodeHandler />
-        </Suspense>
         {children}
         <Toaster position="top-center" richColors theme="light" />
       </body>

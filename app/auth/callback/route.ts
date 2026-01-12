@@ -2,34 +2,60 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
 /**
- * Auth Callback Route Handler
+ * OAuth Callback Route Handler
  *
- * This route handles the OAuth callback from Supabase Auth.
- * It exchanges the authorization code for a session and redirects
- * the user to the farm.
+ * This is the SINGLE entry point for all OAuth code exchange.
+ * Following the principle of server-side token exchange for security.
  *
- * Flow:
- * 1. User clicks "Sign in with Google"
- * 2. Supabase redirects to Google
- * 3. Google redirects back to this callback with a code
- * 4. We exchange the code for a session
- * 5. Redirect to farm
+ * PKCE Flow:
+ * 1. User clicks "Sign in with Google" on /login
+ * 2. Browser → Google → Supabase → /auth/callback?code=xxx
+ * 3. Server exchanges code for session (this route)
+ * 4. Session cookies set automatically by Supabase SSR
+ * 5. User redirected to destination
+ *
+ * Error Handling:
+ * - OAuth provider errors (user cancelled, access denied)
+ * - Missing authorization code
+ * - Code exchange failures (expired, invalid, PKCE mismatch)
  */
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
-  const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/farm";
+  const requestUrl = new URL(request.url);
+  const code = requestUrl.searchParams.get("code");
+  const next = requestUrl.searchParams.get("next") ?? "/farm";
 
-  if (code) {
-    const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+  // Handle OAuth provider errors (e.g., user cancelled)
+  const error = requestUrl.searchParams.get("error");
+  const errorDescription = requestUrl.searchParams.get("error_description");
 
-    if (!error) {
-      // Successful authentication - redirect to farm
-      return NextResponse.redirect(`${origin}${next}`);
-    }
+  if (error) {
+    console.error(`[Auth Callback] OAuth error: ${error} - ${errorDescription}`);
+    return NextResponse.redirect(
+      `${requestUrl.origin}/login?error=${encodeURIComponent(error)}`
+    );
   }
 
-  // If there's no code or an error occurred, redirect to login with error
-  return NextResponse.redirect(`${origin}/login?error=auth_callback_error`);
+  // Validate authorization code presence
+  if (!code) {
+    console.error("[Auth Callback] No authorization code received");
+    return NextResponse.redirect(
+      `${requestUrl.origin}/login?error=missing_code`
+    );
+  }
+
+  // Exchange authorization code for session
+  const supabase = await createClient();
+  const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+
+  if (exchangeError) {
+    console.error("[Auth Callback] Code exchange failed:", exchangeError.message);
+    // Common causes: expired code, PKCE verifier mismatch, code already used
+    return NextResponse.redirect(
+      `${requestUrl.origin}/login?error=exchange_failed`
+    );
+  }
+
+  // Success - redirect to intended destination
+  console.log("[Auth Callback] Authentication successful, redirecting to:", next);
+  return NextResponse.redirect(`${requestUrl.origin}${next}`);
 }
